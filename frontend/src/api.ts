@@ -14,6 +14,8 @@ export const api = {
   get: (id: string) => req(`/api/transactions/${id}`),
   explain: (body: object) => req("/api/investigation/explain", { method: "POST", body: JSON.stringify(body) }),
   graph: (id: string) => req(`/api/graph/${id}`),
+  score: (txn: Record<string, unknown>, scenario?: string) =>
+    req(`/api/transaction/score?scenario=${scenario || "normal"}`, { method: "POST", body: JSON.stringify(txn) }),
   identity: (uid: string) => req(`/api/identity/${uid}`),
   reset: () => req("/api/demo/reset", { method: "POST" }),
 };
