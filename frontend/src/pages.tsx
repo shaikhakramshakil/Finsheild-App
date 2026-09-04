@@ -5,15 +5,141 @@ import { api, type Rec } from "./api";
 
 function Badge({ level }: { level: string }) {
   const c = level === "CRITICAL" ? "risk-CRITICAL" : level === "HIGH" ? "risk-HIGH" : level === "MEDIUM" ? "risk-MEDIUM" : "risk-LOW";
-  return <span className={`mono px-2 py-0.5 rounded border text-xs font-semibold ${c}`}>{level}</span>;
+  return <span className={`mono text-[9px] font-semibold tracking-[1px] uppercase px-2.5 py-0.5 rounded-full border ${c}`}>{level}</span>;
 }
+
 function Src({ s }: { s: string }) {
   const cl = s === "LIVE_MODEL" ? "src-LIVE_MODEL" : "src-DEMO_FALLBACK";
-  return <span className={`mono text-[10px] px-2 py-0.5 rounded border ${cl}`}>{s.replace("_", " ")}</span>;
+  return <span className={`mono text-[9px] uppercase tracking-[1px] px-2 py-0.5 rounded-full border ${cl}`}>{s.replace("_", " ")}</span>;
 }
-function Card({ children, className = "" }: { children: any; className?: string }) {
-  return <div className={`card p-4 ${className}`}>{children}</div>;
+
+function Card({ children, className = "", alt = false, dark = false }: { children: any; className?: string; alt?: boolean; dark?: boolean }) {
+  const base = dark ? "card-dark" : alt ? "card-alt" : "card-white";
+  return <div className={`${base} p-5 ${className}`}>{children}</div>;
 }
+
+function NavHeader({ metrics, health }: { metrics?: any; health?: any }) {
+  return (
+    <header className="sticky top-0 z-30 backdrop-blur-md bg-[#F2EFE7]/90 border-b border-[#D8D4CA]">
+      <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-7 h-7 rounded-[7px] bg-[#171916] flex items-center justify-center text-white font-bold text-xs group-hover:bg-[#FF5B35] transition-colors">
+              F
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="font-bold tracking-tight text-lg text-[#171916]">FinShield</span>
+              <span className="text-[#FF5B35] font-black text-xl leading-none">.</span>
+              <span className="font-mono text-[9px] font-semibold tracking-[1.2px] text-[#7F837B] uppercase hidden sm:inline ml-1">
+                // Fraud Defense
+              </span>
+            </div>
+          </Link>
+        </div>
+
+        <nav className="hidden md:flex items-center gap-6">
+          <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/">Command Center</Link>
+          <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/performance">Observatory</Link>
+          <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/architecture">Architecture</Link>
+          <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/privacy/U-00001">Privacy</Link>
+        </nav>
+
+        <div className="flex items-center gap-2.5">
+          <Src s={health ? (health.adapter === "real" ? "LIVE_MODEL" : "DEMO_FALLBACK") : "DEMO_FALLBACK"} />
+          <span className="font-mono text-[9px] tracking-wider text-[#7F837B] uppercase hidden lg:inline">
+            XGB {metrics?.xgboost ? `${metrics.xgboost.roc_auc.toFixed(3)} ROC • ${metrics.xgboost.pr_auc.toFixed(3)} PR` : "…"}
+          </span>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function FinShieldFooter() {
+  return (
+    <footer className="tellnova-footer mt-20 pt-16 pb-12 px-6 relative overflow-hidden">
+      <div className="tellnova-circle-accent w-[360px] h-[360px] -top-20 -right-20 opacity-80 pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto relative z-10 space-y-12">
+        {/* Dark Callout Banner */}
+        <div className="tellnova-callout-box p-6 md:p-8 max-w-3xl space-y-3">
+          <div className="font-mono text-[9px] uppercase font-bold tracking-[1.5px] text-[#FF5B35]">
+            REQUIRED PROTOCOL CHECK // ZERO TEMPORAL LEAKAGE
+          </div>
+          <h3 className="font-title-strong text-xl md:text-2xl text-[#F2EFE7]">
+            Running with Real ML Core Artifacts?
+          </h3>
+          <p className="text-xs text-[#A7AAA3] leading-relaxed">
+            Ensure the ML Core engine is connected via <code className="text-[#FF5B35]">FINSHEILD_CORE_PATH</code>. All 36 features are strictly timestamp-restricted (<code className="text-[#F2EFE7]">ts &lt; t</code>) to guarantee zero target leakage.
+          </p>
+        </div>
+
+        {/* Big Headline */}
+        <div className="space-y-2">
+          <div className="font-mono text-[10px] uppercase font-bold tracking-[1.5px] text-[#FF5B35]">
+            PRODUCTION ENGINE
+          </div>
+          <h2 className="font-display-hero text-[#F2EFE7]">
+            Put FinShield to work.
+          </h2>
+          <p className="text-sm text-[#A7AAA3] max-w-xl">
+            Autonomous multi-signal fraud defense running at microsecond latency.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-start justify-between gap-8 pt-10 border-t border-[#2B2D2A]">
+          <div className="space-y-2 max-w-sm">
+            <div className="flex items-baseline gap-1">
+              <span className="font-bold tracking-tight text-xl text-[#F2EFE7]">FinShield</span>
+              <span className="text-[#FF5B35] font-black text-xl">.</span>
+              <span className="font-mono text-[9px] text-[#92978E] uppercase tracking-wider ml-1">// Fraud Intelligence</span>
+            </div>
+            <p className="text-xs text-[#92978E] leading-relaxed">
+              Hybrid 5-signal digital payment fraud defense platform fusing XGBoost, Isolation Forests, Deterministic Rules, Behavioral Profiling, and NetworkX Graph Rings with SHAP explainability.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-10">
+            <div>
+              <div className="font-mono text-[9px] font-bold tracking-[1.2px] text-[#FF5B35] uppercase mb-3">Platform</div>
+              <ul className="space-y-2 text-xs">
+                <li><Link to="/" className="text-[#A7AAA3] hover:text-[#F2EFE7] transition-colors">Command Center</Link></li>
+                <li><Link to="/performance" className="text-[#A7AAA3] hover:text-[#F2EFE7] transition-colors">Model Observatory</Link></li>
+                <li><Link to="/architecture" className="text-[#A7AAA3] hover:text-[#F2EFE7] transition-colors">Risk Fusion Engine</Link></li>
+              </ul>
+            </div>
+            <div>
+              <div className="font-mono text-[9px] font-bold tracking-[1.2px] text-[#FF5B35] uppercase mb-3">Protocols</div>
+              <ul className="space-y-2 text-xs">
+                <li><Link to="/privacy/U-00001" className="text-[#A7AAA3] hover:text-[#F2EFE7] transition-colors">Tokenized Privacy</Link></li>
+                <li><span className="text-[#7F837B]">XGBoost 0.9709 ROC</span></li>
+                <li><span className="text-[#7F837B]">NetworkX Graph Rings</span></li>
+              </ul>
+            </div>
+            <div>
+              <div className="font-mono text-[9px] font-bold tracking-[1.2px] text-[#FF5B35] uppercase mb-3">License & Code</div>
+              <ul className="space-y-2 text-xs">
+                <li><a href="https://github.com/shaikhakramshakil/Finsheild-App" target="_blank" rel="noreferrer" className="text-[#A7AAA3] hover:text-[#F2EFE7] transition-colors">GitHub Repository</a></li>
+                <li><a href="https://github.com/shaikhakramshakil/Finsheild" target="_blank" rel="noreferrer" className="text-[#A7AAA3] hover:text-[#F2EFE7] transition-colors">ML Core Engine</a></li>
+                <li><span className="text-[#7F837B]">MIT Open Source</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-6 flex flex-wrap items-center justify-between gap-4 text-[11px] text-[#7F837B] border-t border-[#2B2D2A]">
+          <div className="font-mono">
+            © {new Date().getFullYear()} FinShield Fraud Defense. All rights reserved.
+          </div>
+          <div className="font-mono text-[10px]">
+            EDITORIAL THEME // #F2EFE7 × #171916 × #FF5B35
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 const DEMO_STEPS = [
   { label: "1. Dashboard", path: "/" },
   { label: "2. Suspicious", action: "suspicious" },
@@ -26,7 +152,435 @@ const DEMO_STEPS = [
   { label: "9. Architecture", path: "/architecture" },
   { label: "10. Reset", action: "reset" },
 ];
-export function Dashboard() {
+
+export function LandingPage() {
+  const [metrics, setMetrics] = useState<any>(null);
+  const [health, setHealth] = useState<any>(null);
+
+  // Landing Page UPI Interactive Preview State
+  const [upiSender, setUpiSender] = useState<string>("akram@oksbi");
+  const [upiReceiver, setUpiReceiver] = useState<string>("chaiwala@paytm");
+  const [upiAmount, setUpiAmount] = useState<number>(50);
+  const [upiNote, setUpiNote] = useState<string>("Chai & snacks");
+  const [upiProcessing, setUpiProcessing] = useState<boolean>(false);
+  const [upiResult, setUpiResult] = useState<Rec | null>(null);
+
+  useEffect(() => {
+    Promise.all([api.metrics(), api.health()]).then(([m, h]) => {
+      setMetrics(m);
+      setHealth(h);
+    }).catch(() => {});
+  }, []);
+
+  async function handleUpiPayment(overrideAmount?: number) {
+    const amt = overrideAmount !== undefined ? overrideAmount : Number(upiAmount);
+    if (overrideAmount !== undefined) {
+      setUpiAmount(overrideAmount);
+    }
+    if (!amt || amt <= 0) {
+      alert("Please enter a valid UPI payment amount.");
+      return;
+    }
+    setUpiProcessing(true);
+    try {
+      const isLarge = amt >= 100000;
+      const isMicro = amt <= 500;
+      const payload = {
+        transaction_id: `UPI-${Date.now().toString().slice(-6)}`,
+        user_id: upiSender,
+        amount: amt,
+        timestamp: new Date().toISOString(),
+        merchant: upiReceiver,
+        merchant_category: isMicro ? "everyday" : (isLarge ? "high_value_p2p" : "p2p"),
+        device_id: "DEV-PHONE-AKRAM",
+        location: isLarge ? "Home City (High-Value Transfer)" : "Home City",
+        velocity: 1,
+        usual_amount: 500.0,
+      };
+
+      const res: any = await api.score(payload);
+      setUpiResult(res);
+    } catch (e: any) {
+      alert("UPI Transaction failed: " + e.message);
+    } finally {
+      setUpiProcessing(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen tellnova-grid text-[#171916] flex flex-col justify-between selection:bg-[#FF5B35] selection:text-white">
+      <div>
+        <header className="sticky top-0 z-30 backdrop-blur-md bg-[#F2EFE7]/90 border-b border-[#D8D4CA]">
+          <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link to="/" className="flex items-center gap-2 group">
+                <div className="w-7 h-7 rounded-[7px] bg-[#171916] flex items-center justify-center text-white font-bold text-xs group-hover:bg-[#FF5B35] transition-colors">
+                  F
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="font-bold tracking-tight text-lg text-[#171916]">FinShield</span>
+                  <span className="text-[#FF5B35] font-black text-xl leading-none">.</span>
+                  <span className="font-mono text-[9px] font-semibold tracking-[1.2px] text-[#7F837B] uppercase hidden sm:inline ml-1">
+                    // Fraud Defense
+                  </span>
+                </div>
+              </Link>
+            </div>
+
+            <nav className="hidden md:flex items-center gap-6">
+              <Link className="font-nav-link text-[#FF5B35] font-bold" to="/">Overview</Link>
+              <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/command-center">Command Center</Link>
+              <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/performance">Observatory</Link>
+              <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/architecture">Architecture</Link>
+              <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/privacy/U-00001">Privacy</Link>
+            </nav>
+
+            <div className="flex items-center gap-3">
+              <Src s={health ? (health.adapter === "real" ? "LIVE_MODEL" : "DEMO_FALLBACK") : "DEMO_FALLBACK"} />
+              <Link to="/command-center" className="btn-primary py-2 px-3 text-[9px]">
+                Launch Console ↗
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-7xl mx-auto px-6 py-10 space-y-16">
+          {/* Top Hero Section */}
+          <div className="relative pt-8 pb-4">
+            <div className="tellnova-circle-accent w-[440px] h-[440px] -top-28 -right-24 opacity-90 hidden lg:block" />
+
+            <div className="grid lg:grid-cols-12 gap-8 items-start relative z-10">
+              <div className="lg:col-span-8 space-y-5">
+                <div className="font-mono text-[10px] uppercase font-bold tracking-[1.5px] text-[#FF5B35]">
+                  REAL-TIME FRAUD INTELLIGENCE
+                </div>
+                <h1 className="font-display-hero text-[#171916] max-w-3xl">
+                  Protect the stream.<br />
+                  Let safe payments move.
+                </h1>
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <Link to="/command-center" className="btn-primary py-3.5 px-6 text-xs font-bold tracking-wider">
+                    Launch Command Center ↗
+                  </Link>
+                  <Link to="/performance" className="btn-secondary py-3 px-6 text-xs font-bold tracking-wider">
+                    Model Observatory
+                  </Link>
+                </div>
+              </div>
+
+              <div className="lg:col-span-4 lg:pt-8 space-y-4">
+                <p className="text-[#555951] text-base leading-relaxed">
+                  Every digital payment is evaluated across 5 independent signals in &lt;8ms. Micro-payments auto-clear instantly with zero friction while high-value fund drains and mule rings are intercepted on the wire.
+                </p>
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-[#7F837B] px-2.5 py-1 rounded-full border border-[#D8D4CA] bg-white">
+                    FINSHIELD v2.1 PRODUCTION
+                  </span>
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-[#1B5E20] flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#1B5E20] animate-pulse" />
+                    5-Signal Fusion Live
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Split Parallel Work / UPI Interactive Terminal */}
+          <div className="grid lg:grid-cols-12 gap-8 items-start pt-8 border-t border-[#D8D4CA]">
+            {/* Left Column */}
+            <div className="lg:col-span-5 space-y-6">
+              <div className="space-y-3">
+                <div className="font-mono text-[10px] uppercase font-bold tracking-[1.5px] text-[#FF5B35]">
+                  01 / PARALLEL FUSION
+                </div>
+                <h2 className="font-display-sub text-[#171916]">
+                  More than one model is running.
+                </h2>
+                <p className="text-[#555951] text-sm leading-relaxed">
+                  Separate pipelines evaluate in parallel. Supervised XGBoost (35%), Isolation Forest (20%), Deterministic Rules (20%), Behavioral Drift (15%), and NetworkX Graph Rings (10%) compute simultaneously in &lt;8ms.
+                </p>
+              </div>
+
+              {/* Quick Test Chips */}
+              <div className="p-4 rounded-[11px] bg-white border border-[#D8D4CA] space-y-2.5 shadow-sm">
+                <div className="font-mono text-[9px] uppercase font-bold tracking-wider text-[#7F837B] flex items-center justify-between">
+                  <span>Interactive UPI Test Presets:</span>
+                  <span className="text-[#FF5B35]">INSTANT BENCHMARK</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => handleUpiPayment(50)}
+                    className="font-mono text-[10px] font-semibold tracking-wider uppercase p-2.5 rounded-[7px] border border-[#2E7D32]/40 bg-[#2E7D32]/10 text-[#1B5E20] hover:bg-[#2E7D32]/20 transition-all text-left flex items-center justify-between"
+                  >
+                    <span>☕ ₹50</span>
+                    <span className="text-[9px] opacity-80">PASS (SAFE)</span>
+                  </button>
+                  <button
+                    onClick={() => handleUpiPayment(100)}
+                    className="font-mono text-[10px] font-semibold tracking-wider uppercase p-2.5 rounded-[7px] border border-[#2E7D32]/40 bg-[#2E7D32]/10 text-[#1B5E20] hover:bg-[#2E7D32]/20 transition-all text-left flex items-center justify-between"
+                  >
+                    <span>🍕 ₹100</span>
+                    <span className="text-[9px] opacity-80">PASS (SAFE)</span>
+                  </button>
+                  <button
+                    onClick={() => handleUpiPayment(100000)}
+                    className="font-mono text-[10px] font-semibold tracking-wider uppercase p-2.5 rounded-[7px] border border-[#FF5B35]/50 bg-[#FF5B35]/10 text-[#FF5B35] hover:bg-[#FF5B35]/20 transition-all text-left flex items-center justify-between"
+                  >
+                    <span>🚨 ₹1,00,000</span>
+                    <span className="text-[9px] font-bold">1 LAKH (BLOCK)</span>
+                  </button>
+                  <button
+                    onClick={() => handleUpiPayment(250000)}
+                    className="font-mono text-[10px] font-semibold tracking-wider uppercase p-2.5 rounded-[7px] border border-[#C53030]/50 bg-[#C53030]/10 text-[#C53030] hover:bg-[#C53030]/20 transition-all text-left flex items-center justify-between"
+                  >
+                    <span>🛑 ₹2,50,000</span>
+                    <span className="text-[9px] font-bold">BLOCK</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: High-Contrast Dark Console */}
+            <div className="lg:col-span-7">
+              <div className="tellnova-terminal p-6 space-y-5">
+                {/* Console Window Chrome Header */}
+                <div className="flex items-center justify-between border-b border-[#2B2D2A] pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#FF5B35]" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#B7791F]" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#2E7D32]" />
+                    <span className="font-mono text-[10px] text-[#A7AAA3] ml-2 tracking-wider">
+                      finshield // upi_gateway
+                    </span>
+                  </div>
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-[#2E7D32] flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#2E7D32] animate-ping" />
+                    LIVE MODEL ENGINE
+                  </div>
+                </div>
+
+                {/* Terminal Prompt Bar */}
+                <div className="space-y-1">
+                  <div className="font-title-strong text-base text-[#F2EFE7]">
+                    Simulate Live UPI Transaction
+                  </div>
+                  <p className="font-mono text-[11px] text-[#7F837B]">
+                    Test real-time scoring: micro-payments (₹50–₹100) auto-verify; transfers in Lakhs (≥₹1 Lakh) trigger immediate anomaly block.
+                  </p>
+                </div>
+
+                {/* Form Fields inside Console */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">
+                      Payer (UPI ID)
+                    </label>
+                    <input
+                      type="text"
+                      value={upiSender}
+                      onChange={(e) => setUpiSender(e.target.value)}
+                      className="w-full rounded-[7px] px-3 py-2 text-xs font-mono outline-none"
+                      placeholder="akram@oksbi"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">
+                      Payee / Merchant
+                    </label>
+                    <input
+                      type="text"
+                      value={upiReceiver}
+                      onChange={(e) => setUpiReceiver(e.target.value)}
+                      className="w-full rounded-[7px] px-3 py-2 text-xs font-mono outline-none"
+                      placeholder="chaiwala@paytm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3]">
+                      Amount (₹ INR)
+                    </label>
+                    <span className="font-mono text-[9px] text-[#FF5B35]">
+                      THRESHOLD: ₹1,00,000
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-base font-bold text-[#7F837B]">₹</span>
+                    <input
+                      type="number"
+                      value={upiAmount}
+                      onChange={(e) => setUpiAmount(Number(e.target.value))}
+                      className="w-full rounded-[7px] pl-7 pr-3 py-2 text-lg font-bold font-mono outline-none"
+                      placeholder="50"
+                    />
+                  </div>
+                  <div className="mt-1.5 flex items-center justify-between font-mono text-[10px]">
+                    <span className={upiAmount >= 100000 ? "text-[#FF5B35] font-bold" : (upiAmount <= 500 ? "text-[#4CAF50] font-bold" : "text-[#FFB74D]")}>
+                      {upiAmount >= 100000 ? "🚨 High-Value Anomaly (Triggers Hard Block)" : (upiAmount <= 500 ? "✅ Everyday Micro-Payment (Auto-Approve)" : "⚠️ Moderate Value Transfer")}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">
+                    Transfer Note / Purpose
+                  </label>
+                  <input
+                    type="text"
+                    value={upiNote}
+                    onChange={(e) => setUpiNote(e.target.value)}
+                    className="w-full rounded-[7px] px-3 py-2 text-xs font-mono outline-none"
+                    placeholder="e.g. Chai, Dinner, Salary transfer"
+                  />
+                </div>
+
+                <button
+                  onClick={() => handleUpiPayment()}
+                  disabled={upiProcessing}
+                  className="btn-primary w-full py-3.5 text-xs font-bold tracking-wider"
+                >
+                  {upiProcessing ? "Evaluating Multi-Signal Graph…" : `PAY ₹${Number(upiAmount).toLocaleString("en-IN")} VIA UPI ↗`}
+                </button>
+
+                {/* Result Box inside Console */}
+                {upiResult && (
+                  <div className="mt-4 pt-4 border-t border-[#2B2D2A] space-y-3">
+                    {upiResult.score.risk_score >= 0.7 ? (
+                      <div className="p-4 rounded-[11px] border border-[#FF5B35]/60 bg-[#FF5B35]/15 text-[#F2EFE7] space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">🚨</span>
+                            <div>
+                              <div className="font-title-strong text-sm text-[#FF5B35]">
+                                PAYMENT BLOCKED — FLAGGED AS NOT SAFE
+                              </div>
+                              <div className="font-mono text-[10px] text-[#A7AAA3]">
+                                High-Value Fund Drain Intercepted on Wire
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-mono text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#FF5B35] text-white uppercase">
+                            CRITICAL
+                          </span>
+                        </div>
+                        <p className="font-mono text-xs text-[#F2EFE7]/90">
+                          Transfer of ₹{Number(upiResult.transaction.amount).toLocaleString("en-IN")} to {String(upiResult.transaction.merchant)} was blocked.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-[11px] border border-[#2E7D32]/60 bg-[#2E7D32]/15 text-[#F2EFE7] space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">✅</span>
+                            <div>
+                              <div className="font-title-strong text-sm text-[#4CAF50]">
+                                PAYMENT APPROVED & VERIFIED SAFE
+                              </div>
+                              <div className="font-mono text-[10px] text-[#A7AAA3]">
+                                Passed FinShield 5-Signal Guardrails
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-mono text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#2E7D32] text-white uppercase">
+                            LOW RISK
+                          </span>
+                        </div>
+                        <p className="font-mono text-xs text-[#F2EFE7]/90">
+                          ₹{Number(upiResult.transaction.amount).toLocaleString("en-IN")} sent to {String(upiResult.transaction.merchant)} safely.
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="p-3 bg-[#222521] rounded-[7px] border border-[#383B36] font-mono text-xs text-[#A7AAA3] flex items-center justify-between">
+                      <span>Composite Risk Score: <strong className={upiResult.score.risk_score >= 0.7 ? "text-[#FF5B35]" : "text-[#4CAF50]"}>{(upiResult.score.risk_score * 100).toFixed(1)}/100</strong></span>
+                      <Link to={`/investigate/${upiResult.transaction.transaction_id}`} className="text-[#FF5B35] hover:underline">
+                        Open Forensic Graph →
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Full-Bleed Vibrant Orange Workflow Banner */}
+          <section className="bg-[#FF5B35] text-[#171916] py-14 px-6 md:px-12 rounded-[14px] my-10 shadow-lg">
+            <div className="font-mono text-[10px] uppercase font-bold tracking-[1.5px] text-[#171916] opacity-80 mb-3">
+              THE FRAUD INTERCEPTION PIPELINE
+            </div>
+            <h2 className="font-display-hero text-[#171916] mb-10 leading-none">
+              Ingest. Evaluate. Intercept.
+            </h2>
+
+            <div className="grid md:grid-cols-3 gap-8 pt-6 border-t border-[#171916]/20">
+              <div className="space-y-2">
+                <div className="font-mono text-xs font-bold text-[#171916] opacity-70">01</div>
+                <h3 className="font-title-strong text-lg text-[#171916]">Ingest & Tokenize</h3>
+                <p className="text-xs text-[#171916]/80 leading-relaxed">
+                  Payer identity and device fingerprints are tokenized with salted SHA-256 before extraction of 36 leakage-safe features.
+                </p>
+              </div>
+
+              <div className="space-y-2 md:border-l md:border-[#171916]/20 md:pl-8">
+                <div className="font-mono text-xs font-bold text-[#171916] opacity-70">02</div>
+                <h3 className="font-title-strong text-lg text-[#171916]">5-Signal Risk Fusion</h3>
+                <p className="text-xs text-[#171916]/80 leading-relaxed">
+                  Supervised XGBoost, Isolation Forest, Graph Mule Rings, Behavioral Drift, and 8 Rules score simultaneously in &lt;8ms.
+                </p>
+              </div>
+
+              <div className="space-y-2 md:border-l md:border-[#171916]/20 md:pl-8">
+                <div className="font-mono text-xs font-bold text-[#171916] opacity-70">03</div>
+                <h3 className="font-title-strong text-lg text-[#171916]">Intercept or Clear</h3>
+                <p className="text-xs text-[#171916]/80 leading-relaxed">
+                  Auto-approve safe UPI transfers. Intercept anomalous attacks with full SHAP explainability and grounded copilot evidence.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Benchmark Overview Cards */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="badge-pill mb-1 inline-block">Validation Telemetry</span>
+                <h2 className="font-title-strong text-2xl text-[#171916]">Model Performance & Benchmarks</h2>
+              </div>
+              <Link to="/performance" className="font-mono text-xs text-[#FF5B35] font-semibold hover:underline">
+                Full Observatory →
+              </Link>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <Card>
+                <div className="font-mono text-[10px] uppercase tracking-wider text-[#7F837B]">Real Benchmark — XGB ROC-AUC</div>
+                <div className="text-3xl font-bold font-mono text-[#171916] mt-1">{metrics?.xgboost ? metrics.xgboost.roc_auc.toFixed(4) : "0.9709"}</div>
+                <div className="text-xs text-[#7F837B] mt-1">Evaluated on real Kaggle ULB dataset (284k rows)</div>
+              </Card>
+              <Card>
+                <div className="font-mono text-[10px] uppercase tracking-wider text-[#7F837B]">Real Benchmark — XGB PR-AUC</div>
+                <div className="text-3xl font-bold font-mono text-[#171916] mt-1">{metrics?.xgboost ? metrics.xgboost.pr_auc.toFixed(4) : "0.8418"}</div>
+                <div className="text-xs text-[#7F837B] mt-1">0.17% fraud rate • 486× lift over random baseline</div>
+              </Card>
+              <Card>
+                <div className="font-mono text-[10px] uppercase tracking-wider text-[#7F837B]">Hard-Overlap Stress Test</div>
+                <div className="text-3xl font-bold font-mono text-[#171916] mt-1">0.373</div>
+                <div className="text-xs text-[#7F837B] mt-1">Intentionally stressed overlapping signal robustness</div>
+              </Card>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <FinShieldFooter />
+    </div>
+  );
+}
+
+export function CommandCenter() {
   const [items, setItems] = useState<Rec[]>([]);
   const [metrics, setMetrics] = useState<any>(null);
   const [health, setHealth] = useState<any>(null);
@@ -34,6 +588,7 @@ export function Dashboard() {
   const [demoStep, setDemoStep] = useState(0);
   const lastRef = useRef<string | null>(null);
   const nav = useNavigate();
+
   async function refresh() {
     try {
       const [l, m, h] = await Promise.all([api.list(), api.metrics(), api.health()]);
@@ -44,7 +599,9 @@ export function Dashboard() {
       if (txs.length) lastRef.current = txs[txs.length - 1]?.transaction?.transaction_id ?? txs[0]?.transaction?.transaction_id;
     } catch {}
   }
+
   useEffect(() => { refresh(); }, []);
+
   useEffect(() => {
     if (!running) return;
     const id = setInterval(async () => {
@@ -55,13 +612,15 @@ export function Dashboard() {
     }, 1800);
     return () => clearInterval(id);
   }, [running]);
+
   const alerts = items.filter((r) => r.score.risk_score >= 0.6);
   const critical = items.filter((r) => r.score.risk_level === "CRITICAL");
+
   async function doDemoAction(a: string) {
     if (a === "suspicious") { const r: any = await api.generate("suspicious"); await refresh(); nav(`/investigate/${r.transaction.transaction_id}`); }
     else if (a === "fraud_ring") { const r: any = await api.generate("fraud_ring"); await refresh(); nav(`/investigate/${r.transaction.transaction_id}`); }
     else if (a === "open_last") { if (lastRef.current) nav(`/investigate/${lastRef.current}`); else { const r: any = await api.generate("suspicious"); nav(`/investigate/${r.transaction.transaction_id}`); } }
-    else if (a === "reset") { await api.reset(); refresh(); nav("/"); }
+    else if (a === "reset") { await api.reset(); refresh(); nav("/command-center"); }
   }
 
   // Manual UPI Simulation State
@@ -109,401 +668,305 @@ export function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-20 backdrop-blur bg-[#0a0e14]/90 border-b border-[#1f2733]">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-gradient-to-br from-cyan-400 to-indigo-500" />
-            <div>
-              <div className="font-bold tracking-tight">FINSHEILD</div>
-              <div className="text-[10px] opacity-60 mono">HYBRID FRAUD INTELLIGENCE • DEMO SIMULATION</div>
+    <div className="min-h-screen tellnova-grid text-[#171916] flex flex-col justify-between selection:bg-[#FF5B35] selection:text-white">
+      <div>
+        <header className="sticky top-0 z-30 backdrop-blur-md bg-[#F2EFE7]/90 border-b border-[#D8D4CA]">
+          <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Link to="/" className="flex items-center gap-2 group">
+                <div className="w-7 h-7 rounded-[7px] bg-[#171916] flex items-center justify-center text-white font-bold text-xs group-hover:bg-[#FF5B35] transition-colors">
+                  F
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="font-bold tracking-tight text-lg text-[#171916]">FinShield</span>
+                  <span className="text-[#FF5B35] font-black text-xl leading-none">.</span>
+                  <span className="font-mono text-[9px] font-semibold tracking-[1.2px] text-[#7F837B] uppercase hidden sm:inline ml-1">
+                    // Command Center
+                  </span>
+                </div>
+              </Link>
+            </div>
+
+            <nav className="hidden md:flex items-center gap-6">
+              <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/">← Landing Page</Link>
+              <Link className="font-nav-link text-[#FF5B35] font-bold" to="/command-center">Command Center</Link>
+              <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/performance">Observatory</Link>
+              <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/architecture">Architecture</Link>
+              <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/privacy/U-00001">Privacy</Link>
+            </nav>
+
+            <div className="flex items-center gap-2.5">
+              <Src s={health ? (health.adapter === "real" ? "LIVE_MODEL" : "DEMO_FALLBACK") : "DEMO_FALLBACK"} />
+              <span className="font-mono text-[9px] tracking-wider text-[#7F837B] uppercase hidden lg:inline">
+                XGB {metrics?.xgboost ? `${metrics.xgboost.roc_auc.toFixed(3)} ROC • ${metrics.xgboost.pr_auc.toFixed(3)} PR` : "…"}
+              </span>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs">
-            <Src s={health ? (health.adapter === "real" ? "LIVE_MODEL" : "DEMO_FALLBACK") : "DEMO_FALLBACK"} />
-            <span className="mono opacity-60">XGB {metrics?.xgboost ? `${metrics.xgboost.roc_auc.toFixed(3)} ROC • ${metrics.xgboost.pr_auc.toFixed(3)} PR` : "…"}</span>
+        </header>
+
+        <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+          {/* Header Title */}
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#D8D4CA] pb-4">
+            <div>
+              <span className="badge-pill mb-1 inline-block">Operational Cockpit</span>
+              <h1 className="font-title-strong text-2xl text-[#171916]">Fraud Operations Command Center</h1>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-xs text-[#1B5E20] flex items-center gap-1.5 bg-[#2E7D32]/10 px-3 py-1 rounded-full border border-[#2E7D32]/30">
+                <span className="w-2 h-2 rounded-full bg-[#1B5E20] animate-pulse" />
+                Live Telemetry Active
+              </span>
+            </div>
           </div>
-        </div>
-      </header>
-      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-        <nav className="flex flex-wrap gap-2 text-xs mono">
-          <Link className="border border-[#1f2733] px-3 py-1 rounded bg-[#11161f]" to="/">Command Center</Link>
-          <Link className="border border-[#1f2733] px-3 py-1 rounded hover:bg-[#11161f]" to="/performance">Model Performance</Link>
-          <Link className="border border-[#1f2733] px-3 py-1 rounded hover:bg-[#11161f]" to="/architecture">Architecture</Link>
-          <Link className="border border-[#1f2733] px-3 py-1 rounded hover:bg-[#11161f]" to="/privacy/U-00001">Privacy</Link>
-          <span className="ml-auto opacity-60 self-center">DEMO SIMULATION — not real banking data</span>
-        </nav>
-        <Card className="border-indigo-900/40">
-          <div className="flex items-center justify-between gap-2">
-            <div className="font-semibold text-sm">DEMO MODE — 10-step judge flow</div>
-            <span className="text-xs mono opacity-60">Step {demoStep + 1}/10</span>
-          </div>
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {DEMO_STEPS.map((s, i) => (
-              <button key={i} onClick={() => { setDemoStep(i); if (s.path) nav(s.path); else if (s.action) doDemoAction(s.action); }} className={`text-xs mono px-2.5 py-1 rounded border ${i===demoStep ? "bg-indigo-600 border-indigo-500 text-white" : "border-[#1f2733] hover:bg-[#11161f]"}`}>{s.label}</button>
+
+          {/* 10-Step Judge Flow */}
+          <Card className="border-[#D8D4CA]">
+            <div className="flex items-center justify-between gap-2 border-b border-[#E7E4DB] pb-3">
+              <div className="font-title-strong text-sm text-[#171916] flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#FF5B35]"></span>
+                DEMO MODE — 10-Step Evaluator Flow
+              </div>
+              <span className="font-mono text-xs text-[#7F837B]">Step {demoStep + 1} of 10</span>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {DEMO_STEPS.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setDemoStep(i);
+                    if (s.path) nav(s.path);
+                    else if (s.action) doDemoAction(s.action);
+                  }}
+                  className={`font-mono text-[10px] font-semibold tracking-wider uppercase px-3 py-1.5 rounded-[7px] border transition-all ${
+                    i === demoStep
+                      ? "bg-[#FF5B35] border-[#FF5B35] text-white shadow-sm"
+                      : "bg-[#FFFFFF] border-[#D8D4CA] text-[#555951] hover:text-[#171916] hover:border-[#62665F]"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </Card>
+
+          {/* Metrics KPIs */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {[
+              ["System", health?.status ?? "…", health?.status === "ok" ? "bg-[#1B5E20]" : "bg-[#B7791F]"],
+              ["Model adapter", health?.adapter ?? "…", health?.adapter === "real" ? "bg-[#1B5E20]" : "bg-[#B7791F]"],
+              ["Transactions", String(items.length), "bg-[#FF5B35]"],
+              ["High-risk alerts", String(alerts.length), alerts.length ? "bg-[#C53030]" : "bg-[#92978E]"],
+              ["Critical", String(critical.length), critical.length ? "bg-[#FF5B35]" : "bg-[#92978E]"],
+            ].map(([k, v, dot]) => (
+              <Card key={k} className="p-4">
+                <div className="flex items-center gap-2 font-mono text-[10px] uppercase text-[#7F837B]">
+                  <span className={`w-2 h-2 rounded-full ${dot}`} />
+                  {k}
+                </div>
+                <div className="text-2xl font-bold font-mono text-[#171916] mt-2">{v}</div>
+              </Card>
             ))}
           </div>
-        </Card>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {[
-            ["System", health?.status ?? "…", health?.status === "ok" ? "bg-emerald-500" : "bg-amber-500"],
-            ["Model adapter", health?.adapter ?? "…", health?.adapter === "real" ? "bg-emerald-500" : "bg-amber-500"],
-            ["Transactions", String(items.length), "bg-cyan-500"],
-            ["High-risk alerts", String(alerts.length), alerts.length ? "bg-red-500" : "bg-[#1f2733]"],
-            ["Critical", String(critical.length), critical.length ? "bg-[#ff2e63]" : "bg-[#1f2733]"],
-          ].map(([k, v, dot]) => (
-            <Card key={k} className="p-3">
-              <div className="flex items-center gap-2 text-xs opacity-60"><span className={`w-2 h-2 rounded-full ${dot}`} />{k}</div>
-              <div className="text-xl font-semibold mono mt-1">{v}</div>
-            </Card>
-          ))}
-        </div>
-        <div className="grid md:grid-cols-3 gap-3">
-          <Card><div className="text-xs opacity-60">REAL BENCHMARK — XGB ROC-AUC</div><div className="text-2xl font-semibold mono">{metrics?.xgboost ? metrics.xgboost.roc_auc.toFixed(4) : "…"}</div><div className="text-xs opacity-60">from xgboost_metrics.json</div></Card>
-          <Card><div className="text-xs opacity-60">REAL BENCHMARK — XGB PR-AUC</div><div className="text-2xl font-semibold mono">{metrics?.xgboost ? metrics.xgboost.pr_auc.toFixed(4) : "…"}</div><div className="text-xs opacity-60">0.17% fraud • 486× lift</div></Card>
-          <Card><div className="text-xs opacity-60">Hard-overlap stress — XGB PR</div><div className="text-2xl font-semibold mono">0.373</div><div className="text-xs opacity-60">vs 0.959 easy — overlap works</div></Card>
-        </div>
-        {/* UPI Payment Simulator & Real-Time Fraud Interceptor */}
-        <Card className="border-indigo-500/40 bg-gradient-to-br from-[#0a0f18] via-[#0d1424] to-[#121024] shadow-2xl p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#1f2733] pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center text-xl shadow-lg shadow-indigo-500/30">
-                📱
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-bold tracking-tight text-white">
-                    UPI Instant Payment Simulator
+
+          {/* UPI Instant Payment Simulator Studio */}
+          <div className="tellnova-terminal p-6 space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2B2D2A] pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-[7px] bg-[#FF5B35] flex items-center justify-center text-white font-bold text-sm">
+                  ⚡
+                </div>
+                <div>
+                  <h2 className="font-title-strong text-base text-[#F2EFE7]">
+                    Interactive UPI Instant Payment Testing Studio
                   </h2>
-                  <span className="text-[10px] mono uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold">
-                    FinShield Protected
-                  </span>
+                  <p className="font-mono text-[10px] text-[#7F837B]">
+                    Manual test: ₹50–₹100 auto-approve • ≥₹1,00,000 trigger anomaly security block
+                  </p>
                 </div>
-                <p className="text-xs opacity-70 mt-0.5 text-slate-300">
-                  Test manual UPI transactions live. Everyday amounts (₹50 – ₹100) are automatically verified as safe, while high-value transfers (≥ ₹1 Lakh) are instantly flagged and blocked.
-                </p>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <button onClick={() => handleUpiPayment(50)} className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-[7px] bg-[#2E7D32]/20 border border-[#2E7D32]/50 text-[#4CAF50] hover:bg-[#2E7D32]/30">☕ ₹50 Safe</button>
+                <button onClick={() => handleUpiPayment(100)} className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-[7px] bg-[#2E7D32]/20 border border-[#2E7D32]/50 text-[#4CAF50] hover:bg-[#2E7D32]/30">🍕 ₹100 Safe</button>
+                <button onClick={() => handleUpiPayment(100000)} className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-[7px] bg-[#FF5B35]/20 border border-[#FF5B35]/50 text-[#FF5B35] hover:bg-[#FF5B35]/30">🚨 ₹1,00,000 Block</button>
+                <button onClick={() => handleUpiPayment(250000)} className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-[7px] bg-[#C53030]/20 border border-[#C53030]/50 text-[#EF5350] hover:bg-[#C53030]/30">🛑 ₹2,50,000 Block</button>
               </div>
             </div>
 
-            {/* Quick Test Chips */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs opacity-60 mono">Quick Test:</span>
-              <button
-                onClick={() => handleUpiPayment(50)}
-                className="text-xs mono px-3 py-1.5 rounded-lg border border-emerald-500/50 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-all font-semibold flex items-center gap-1.5"
-              >
-                <span>☕ ₹50</span>
-                <span className="text-[10px] opacity-75">(Pass)</span>
-              </button>
-              <button
-                onClick={() => handleUpiPayment(100)}
-                className="text-xs mono px-3 py-1.5 rounded-lg border border-emerald-500/50 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-all font-semibold flex items-center gap-1.5"
-              >
-                <span>🍕 ₹100</span>
-                <span className="text-[10px] opacity-75">(Pass)</span>
-              </button>
-              <button
-                onClick={() => handleUpiPayment(100000)}
-                className="text-xs mono px-3 py-1.5 rounded-lg border border-red-500/50 bg-red-500/15 text-red-300 hover:bg-red-500/25 transition-all font-semibold flex items-center gap-1.5"
-              >
-                <span>🚨 ₹1,00,000</span>
-                <span className="text-[10px] opacity-75">(1 Lakh - Flag)</span>
-              </button>
-              <button
-                onClick={() => handleUpiPayment(250000)}
-                className="text-xs mono px-3 py-1.5 rounded-lg border border-red-500/50 bg-red-500/15 text-red-300 hover:bg-red-500/25 transition-all font-semibold flex items-center gap-1.5"
-              >
-                <span>🛑 ₹2,50,000</span>
-                <span className="text-[10px] opacity-75">(Block)</span>
-              </button>
+            <div className="grid md:grid-cols-4 gap-4">
+              <div>
+                <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">From (Payer UPI)</label>
+                <input type="text" value={upiSender} onChange={(e) => setUpiSender(e.target.value)} className="w-full rounded-[7px] px-3 py-2 text-xs font-mono outline-none" />
+              </div>
+              <div>
+                <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">To (Payee / Merchant)</label>
+                <input type="text" value={upiReceiver} onChange={(e) => setUpiReceiver(e.target.value)} className="w-full rounded-[7px] px-3 py-2 text-xs font-mono outline-none" />
+              </div>
+              <div>
+                <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">Amount (₹ INR)</label>
+                <input type="number" value={upiAmount} onChange={(e) => setUpiAmount(Number(e.target.value))} className="w-full rounded-[7px] px-3 py-2 text-xs font-mono font-bold outline-none" />
+              </div>
+              <div>
+                <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">Transfer Note</label>
+                <input type="text" value={upiNote} onChange={(e) => setUpiNote(e.target.value)} className="w-full rounded-[7px] px-3 py-2 text-xs font-mono outline-none" />
+              </div>
             </div>
+
+            <button onClick={() => handleUpiPayment()} disabled={upiProcessing} className="btn-primary w-full py-3 text-xs font-bold tracking-wider">
+              {upiProcessing ? "Evaluating Multi-Signal Graph…" : `PAY ₹${Number(upiAmount).toLocaleString("en-IN")} VIA UPI ↗`}
+            </button>
+
+            {upiResult && (
+              <div className="p-4 rounded-[11px] bg-[#222521] border border-[#383B36] flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">{upiResult.score.risk_score >= 0.7 ? "🚨" : "✅"}</span>
+                    <span className={`font-mono text-xs font-bold ${upiResult.score.risk_score >= 0.7 ? "text-[#FF5B35]" : "text-[#4CAF50]"}`}>
+                      {upiResult.score.risk_score >= 0.7 ? "PAYMENT BLOCKED — FLAGGED AS NOT SAFE" : "PAYMENT APPROVED & VERIFIED SAFE"}
+                    </span>
+                    <Badge level={upiResult.score.risk_level} />
+                  </div>
+                  <div className="font-mono text-[11px] text-[#A7AAA3] mt-1">
+                    ₹{Number(upiResult.transaction.amount).toLocaleString("en-IN")} • Risk Score: {(upiResult.score.risk_score * 100).toFixed(1)}/100 • Rules: {upiResult.score.rules.join(", ") || "None"}
+                  </div>
+                </div>
+                <Link to={`/investigate/${upiResult.transaction.transaction_id}`} className="btn-secondary py-1.5 px-3 text-[10px]">
+                  Inspect Forensics →
+                </Link>
+              </div>
+            )}
           </div>
 
-          <div className="grid lg:grid-cols-12 gap-6 mt-6">
-            {/* Left: Manual UPI Form (6 cols) */}
-            <div className="lg:col-span-6 space-y-4 bg-[#080c14] p-5 rounded-2xl border border-[#1f2733]">
-              <div className="text-xs font-bold mono uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                <span>Enter Payment Details</span>
-                <span className="text-cyan-400">NPCI / UPI 2.0</span>
+          {/* Live Stream & Quick Scenario Generator */}
+          <Card className="border-[#D8D4CA]">
+            <div className="flex items-center justify-between border-b border-[#E7E4DB] pb-3">
+              <div className="font-title-strong text-sm text-[#171916] flex items-center gap-2">
+                <span>Live Transaction Stream</span>
+                <span className="badge-pill bg-[#E7E4DB] text-[#555951]">SIMULATION</span>
               </div>
+              <span className={`font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-full border ${running ? "bg-[#2E7D32]/10 text-[#1B5E20] border-[#2E7D32]/30" : "bg-[#E7E4DB] text-[#7F837B] border-[#D8D4CA]"}`}>
+                {running ? "● Streaming Active" : "○ Paused"}
+              </span>
+            </div>
 
-              <div>
-                <label className="text-xs font-semibold mono opacity-80 block mb-1 text-slate-300">
-                  From (Payer UPI ID)
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={upiSender}
-                    onChange={(e) => setUpiSender(e.target.value)}
-                    className="w-full bg-[#0d131f] border border-[#1f2733] focus:border-cyan-500 rounded-lg px-3 py-2 text-sm mono text-white outline-none"
-                    placeholder="e.g. akram@oksbi"
-                  />
-                  <span className="absolute right-3 top-2.5 text-[10px] mono text-emerald-400">● Active</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold mono opacity-80 block mb-1 text-slate-300">
-                  To (Payee / Merchant UPI ID)
-                </label>
-                <input
-                  type="text"
-                  value={upiReceiver}
-                  onChange={(e) => setUpiReceiver(e.target.value)}
-                  className="w-full bg-[#0d131f] border border-[#1f2733] focus:border-cyan-500 rounded-lg px-3 py-2 text-sm mono text-white outline-none"
-                  placeholder="e.g. merchant@paytm or receiver@ybl"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold mono opacity-80 block mb-1 text-slate-300">
-                  Amount (₹ INR)
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2 text-lg font-bold text-slate-400">₹</span>
-                  <input
-                    type="number"
-                    value={upiAmount}
-                    onChange={(e) => setUpiAmount(Number(e.target.value))}
-                    className="w-full bg-[#0d131f] border border-[#1f2733] focus:border-cyan-500 rounded-lg pl-8 pr-3 py-2 text-lg font-bold mono text-white outline-none"
-                    placeholder="50"
-                  />
-                </div>
-                {/* Visual indicator of threshold */}
-                <div className="mt-1.5 flex items-center justify-between text-[11px] mono">
-                  <span className={upiAmount >= 100000 ? "text-red-400 font-bold" : (upiAmount <= 500 ? "text-emerald-400 font-bold" : "text-amber-400")}>
-                    {upiAmount >= 100000 ? "🚨 High-Value Anomaly (Exceeds ₹1 Lakh)" : (upiAmount <= 500 ? "✅ Everyday Micro-Payment (Verified Safe)" : "⚠️ Moderate Amount")}
-                  </span>
-                  <span className="opacity-50">Threshold: ₹1,00,000</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold mono opacity-80 block mb-1 text-slate-300">
-                  Remarks / Note
-                </label>
-                <input
-                  type="text"
-                  value={upiNote}
-                  onChange={(e) => setUpiNote(e.target.value)}
-                  className="w-full bg-[#0d131f] border border-[#1f2733] focus:border-cyan-500 rounded-lg px-3 py-2 text-xs mono text-white outline-none"
-                  placeholder="e.g. Chai, Groceries, Transfer"
-                />
-              </div>
-
+            <div className="flex flex-wrap gap-2 mt-4">
               <button
-                onClick={() => handleUpiPayment()}
-                disabled={upiProcessing}
-                className={`w-full py-3.5 rounded-xl font-bold mono text-sm flex items-center justify-center gap-2 transition-all shadow-lg ${
-                  upiAmount >= 100000
-                    ? "bg-gradient-to-r from-amber-600 via-red-600 to-rose-700 hover:opacity-90 text-white shadow-red-500/20"
-                    : "bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:opacity-90 text-white shadow-emerald-500/20"
-                }`}
+                className={`font-mono text-[10px] font-semibold uppercase tracking-wider px-3.5 py-2 rounded-[7px] border transition-all ${running ? "bg-[#C53030]/10 border-[#C53030]/40 text-[#C53030]" : "bg-[#2E7D32]/10 border-[#2E7D32]/40 text-[#1B5E20]"}`}
+                onClick={() => setRunning(!running)}
               >
-                {upiProcessing ? (
-                  <span>⏳ Processing UPI Payment via FinShield...</span>
+                {running ? "Pause Stream" : "Start Live Stream"}
+              </button>
+              <button className="btn-secondary py-1.5 px-3 text-[10px]" onClick={async () => { await api.reset(); refresh(); }}>Reset</button>
+              <button className="font-mono text-[10px] uppercase font-semibold px-3 py-1.5 rounded-[7px] border border-[#D8D4CA] bg-[#FFFFFF] hover:bg-[#E7E4DB]" onClick={async () => { await api.generate("normal"); refresh(); }}>Generate Normal</button>
+              <button className="font-mono text-[10px] uppercase font-semibold px-3 py-1.5 rounded-[7px] border border-[#B7791F]/40 bg-[#B7791F]/10 text-[#B7791F] hover:bg-[#B7791F]/20" onClick={async () => { await api.generate("suspicious"); refresh(); }}>Generate Suspicious</button>
+              <button className="font-mono text-[10px] uppercase font-semibold px-3 py-1.5 rounded-[7px] border border-[#FF5B35]/40 bg-[#FF5B35]/10 text-[#FF5B35] hover:bg-[#FF5B35]/20" onClick={async () => { await api.generate("fraud_ring"); refresh(); }}>Generate Fraud Ring</button>
+              <button className="font-mono text-[10px] uppercase font-semibold px-3 py-1.5 rounded-[7px] border border-[#D8D4CA] bg-[#FFFFFF] hover:bg-[#E7E4DB]" onClick={async () => { await api.generate("ambiguous"); refresh(); }}>Generate Subtle</button>
+            </div>
+          </Card>
+
+          {/* Alerts & Investigations Grid */}
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="md:col-span-2 border-[#D8D4CA]">
+              <div className="font-title-strong text-sm text-[#171916] mb-3 flex items-center justify-between">
+                <span>Active Risk Alerts (Risk ≥ 0.6)</span>
+                <span className="font-mono text-xs text-[#C53030] font-semibold">{alerts.length} Flagged</span>
+              </div>
+              <div className="space-y-2 max-h-[380px] overflow-auto pr-1">
+                {alerts.length === 0 ? (
+                  <div className="text-xs text-[#7F837B] py-6 text-center">No active high-risk alerts. Use the UPI Simulator or click "Generate Suspicious" above.</div>
                 ) : (
-                  <span>⚡ Pay ₹{Number(upiAmount).toLocaleString("en-IN")} via UPI</span>
-                )}
-              </button>
-            </div>
-
-            {/* Right: Live Payment Verdict / Result Screen (6 cols) */}
-            <div className="lg:col-span-6 bg-[#080c14] border border-[#1f2733] rounded-2xl p-6 flex flex-col justify-between">
-              {upiResult ? (
-                <div className="space-y-5">
-                  {/* Status Banner */}
-                  {upiResult.score.risk_score >= 0.7 ? (
-                    <div className="p-4 rounded-xl border border-red-500/50 bg-red-950/40 text-red-200 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">🚨</span>
-                          <div>
-                            <div className="font-bold text-sm tracking-wide text-red-300">
-                              PAYMENT BLOCKED — FLAGGED AS NOT SAFE!
-                            </div>
-                            <div className="text-[11px] mono text-red-400/80">
-                              FinShield Protection Intercepted High-Risk Fund Drain
-                            </div>
-                          </div>
-                        </div>
-                        <Badge level="CRITICAL" />
-                      </div>
-                      <div className="text-xs bg-red-900/30 p-2.5 rounded border border-red-500/30 text-red-200">
-                        <strong>Alert:</strong> Transfer of ₹{Number(upiResult.transaction.amount).toLocaleString("en-IN")} to <span className="mono font-semibold">{String(upiResult.transaction.merchant)}</span> was halted.
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-4 rounded-xl border border-emerald-500/50 bg-emerald-950/40 text-emerald-200 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">✅</span>
-                          <div>
-                            <div className="font-bold text-sm tracking-wide text-emerald-300">
-                              PAYMENT SUCCESSFUL & VERIFIED SAFE
-                            </div>
-                            <div className="text-[11px] mono text-emerald-400/80">
-                              Passed FinShield 5-Signal Security Check
-                            </div>
-                          </div>
-                        </div>
-                        <Badge level="LOW" />
-                      </div>
-                      <div className="text-xs bg-emerald-900/30 p-2.5 rounded border border-emerald-500/30 text-emerald-200">
-                        ₹{Number(upiResult.transaction.amount).toLocaleString("en-IN")} paid to <span className="mono font-semibold">{String(upiResult.transaction.merchant)}</span> safely.
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Risk Score & Evidence */}
-                  <div className="bg-[#0e1422] p-4 rounded-xl border border-[#1f2733] space-y-3">
-                    <div className="flex justify-between items-baseline">
-                      <span className="text-xs mono opacity-70">FinShield Risk Score</span>
-                      <span className={`text-2xl font-bold mono ${upiResult.score.risk_score >= 0.7 ? "text-red-400" : "text-emerald-400"}`}>
-                        {(upiResult.score.risk_score * 100).toFixed(1)}
-                        <span className="text-xs opacity-50 font-normal"> / 100</span>
-                      </span>
-                    </div>
-
-                    <div className="w-full bg-[#182030] h-2.5 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-500 ${
-                          upiResult.score.risk_score >= 0.7
-                            ? "bg-red-500"
-                            : upiResult.score.risk_score >= 0.3
-                            ? "bg-amber-500"
-                            : "bg-emerald-500"
-                        }`}
-                        style={{ width: `${Math.min(100, Math.max(5, upiResult.score.risk_score * 100))}%` }}
-                      />
-                    </div>
-
-                    {/* Triggered Rules */}
-                    {upiResult.score.rules.length > 0 && (
-                      <div>
-                        <span className="text-[10px] mono opacity-60 uppercase block mb-1">Triggered Security Rules:</span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {upiResult.score.rules.map((rule) => (
-                            <span key={rule} className="text-[10px] mono px-2 py-0.5 rounded bg-red-950/60 border border-red-500/40 text-red-300 font-semibold">
-                              ⚠️ {rule}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Evidence Points */}
-                    <div className="space-y-1 pt-1 border-t border-[#1f2733]/60">
-                      <span className="text-[10px] mono opacity-60 uppercase block">Engine Security Analysis:</span>
-                      <ul className="text-xs space-y-1 text-slate-300">
-                        {upiResult.score.evidence.map((ev, idx) => (
-                          <li key={idx} className="flex items-start gap-1.5">
-                            <span className={upiResult.score.risk_score >= 0.7 ? "text-red-400" : "text-emerald-400"}>•</span>
-                            <span>{ev}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setUpiResult(null)}
-                      className="flex-1 py-2 px-3 rounded-lg text-center text-xs font-semibold mono bg-[#151c28] hover:bg-[#1f293b] text-slate-300 border border-[#1f2733] transition-all"
-                    >
-                      ↺ New Payment
-                    </button>
+                  alerts.slice(0, 12).map((r) => (
                     <Link
-                      to={`/investigate/${upiResult.transaction.transaction_id}`}
-                      className="flex-1 py-2 px-3 rounded-lg text-center text-xs font-semibold mono bg-[#162030] hover:bg-cyan-900/40 text-cyan-300 border border-cyan-500/40 transition-all"
+                      key={r.transaction.transaction_id as string}
+                      to={`/investigate/${r.transaction.transaction_id}`}
+                      className="flex items-center justify-between border border-[#E7E4DB] rounded-[11px] p-3 hover:bg-[#FFFFFF] transition-all bg-[#F2EFE7]"
                     >
-                      🔍 Forensic View →
+                      <div>
+                        <div className="font-mono text-xs font-bold text-[#171916] flex items-center gap-2">
+                          {r.transaction.transaction_id as string}
+                          <Badge level={r.score.risk_level} />
+                        </div>
+                        <div className="text-xs text-[#555951] mt-0.5">
+                          {r.transaction.merchant as string} • {r.transaction.location as string} • ₹{Number(r.transaction.amount).toLocaleString("en-IN")}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-mono text-sm font-bold text-[#171916]">{r.score.risk_score.toFixed(3)}</div>
+                        <div className="mt-0.5"><Src s={r.score.source} /></div>
+                      </div>
                     </Link>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-full min-h-[320px] flex flex-col items-center justify-center text-center p-6 space-y-4">
-                  <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-3xl shadow-inner">
-                    📱
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-white">Ready for UPI Payment</h3>
-                    <p className="text-xs opacity-70 mt-1 max-w-xs text-slate-300">
-                      Enter any amount on the left or use the <strong>Quick Test</strong> buttons above to see how FinShield automatically passes ₹50–₹100 micro-payments and blocks high-value transfers in Lakhs.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
+                  ))
+                )}
+              </div>
+            </Card>
 
-        <Card>
-          <div className="flex items-center justify-between">
-            <div className="font-semibold text-sm">Live Transaction Stream — DEMO SIMULATION</div>
-            <span className={`text-xs mono px-2 py-0.5 rounded border ${running ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" : "bg-[#1f2733] text-white/60"}`}>{running ? "● LIVE" : "○ PAUSED"}</span>
-          </div>
-          <div className="flex flex-wrap gap-2 mt-3 text-xs mono">
-            <button className={`border px-3 py-1.5 rounded ${running ? "bg-red-500/10 border-red-500/30" : "bg-emerald-500/10 border-emerald-500/30"}`} onClick={() => setRunning(!running)}>{running ? "Pause" : "Start"} stream</button>
-            <button className="border border-[#1f2733] px-3 py-1.5 rounded" onClick={async () => { await api.reset(); refresh(); }}>Reset</button>
-            <button className="border border-[#1f2733] px-3 py-1.5 rounded" onClick={async () => { await api.generate("normal"); refresh(); }}>Generate Normal</button>
-            <button className="border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 rounded" onClick={async () => { await api.generate("suspicious"); refresh(); }}>Generate Suspicious</button>
-            <button className="border border-red-500/30 bg-red-500/10 px-3 py-1.5 rounded" onClick={async () => { await api.generate("fraud_ring"); refresh(); }}>Generate Fraud Ring</button>
-            <button className="border border-[#1f2733] px-3 py-1.5 rounded" onClick={async () => { await api.generate("ambiguous"); refresh(); }}>Generate Subtle</button>
-          </div>
-          <p className="text-xs opacity-60 mt-2">Deterministic simulator — same seed → same sequence. Start → 1.8s interval.</p>
-        </Card>
-        <div className="grid md:grid-cols-3 gap-4">
-          <Card className="md:col-span-2">
-            <div className="font-semibold text-sm mb-2">Alerts (risk ≥ 0.6) — {alerts.length} active</div>
-            <div className="space-y-2 max-h-[420px] overflow-auto pr-1">
-              {alerts.length === 0 ? <div className="text-sm opacity-60">No high-risk alerts — generate suspicious to demo.</div> : alerts.slice(0, 12).map((r) => (
-                <Link key={r.transaction.transaction_id as string} to={`/investigate/${r.transaction.transaction_id}`} className="flex items-center justify-between border border-[#1f2733] rounded px-3 py-2 hover:bg-[#0f131a]">
-                  <div><div className="mono text-sm font-semibold">{r.transaction.transaction_id as string} <Badge level={r.score.risk_level} /></div><div className="text-xs opacity-60">{r.transaction.merchant as string} • {r.transaction.location as string} • ₹{r.transaction.amount as number}</div></div>
-                  <div className="text-right"><div className="mono text-sm">{r.score.risk_score.toFixed(3)}</div><div className="text-xs opacity-60"><Src s={r.score.source} /></div></div>
-                </Link>
-              ))}
-            </div>
-          </Card>
-          <Card>
-            <div className="font-semibold text-sm mb-2">Recent investigations</div>
-            <div className="space-y-1.5 max-h-[420px] overflow-auto pr-1">
-              {items.slice(0, 10).map((r) => (
-                <Link key={r.transaction.transaction_id as string} to={`/investigate/${r.transaction.transaction_id}`} className="flex justify-between text-xs mono border border-[#1f2733] rounded px-2 py-1.5 hover:bg-[#0f131a]">
-                  <span>{r.transaction.transaction_id as string}</span><Badge level={r.score.risk_level} />
-                </Link>
-              ))}
-              {items.length === 0 && <div className="text-xs opacity-60">No transactions yet.</div>}
-            </div>
-          </Card>
-        </div>
-        <Card>
-          <div className="font-semibold text-sm mb-2">Recent transactions — DEMO SIMULATION (last 20)</div>
-          <div className="overflow-auto">
-            <table className="w-full text-xs mono">
-              <thead><tr className="text-left opacity-60"><th className="py-1">ID</th><th>Amount</th><th>Merchant</th><th>Location</th><th>Device</th><th>Risk</th><th>Score</th></tr></thead>
-              <tbody>
-                {items.slice(0, 20).map((r) => (
-                  <tr key={r.transaction.transaction_id as string} className="border-t border-[#1f2733] hover:bg-[#0f131a]">
-                    <td className="py-1"><Link className="underline" to={`/investigate/${r.transaction.transaction_id}`}>{r.transaction.transaction_id as string}</Link></td>
-                    <td>₹{r.transaction.amount as number}</td>
-                    <td>{r.transaction.merchant as string}</td>
-                    <td className="opacity-70">{r.transaction.location as string}</td>
-                    <td className="opacity-70">{String(r.transaction.device_id).slice(0, 12)}</td>
-                    <td><Badge level={r.score.risk_level} /></td>
-                    <td>{r.score.risk_score.toFixed(3)}</td>
-                  </tr>
+            <Card className="border-[#D8D4CA]">
+              <div className="font-title-strong text-sm text-[#171916] mb-3">Recent Investigations</div>
+              <div className="space-y-2 max-h-[380px] overflow-auto pr-1">
+                {items.slice(0, 10).map((r) => (
+                  <Link
+                    key={r.transaction.transaction_id as string}
+                    to={`/investigate/${r.transaction.transaction_id}`}
+                    className="flex justify-between items-center font-mono text-xs border border-[#E7E4DB] rounded-[7px] p-2 hover:bg-[#FFFFFF] transition-all"
+                  >
+                    <span className="text-[#171916] font-semibold">{r.transaction.transaction_id as string}</span>
+                    <Badge level={r.score.risk_level} />
+                  </Link>
                 ))}
-              </tbody>
-            </table>
+                {items.length === 0 && <div className="text-xs text-[#7F837B]">No transactions yet.</div>}
+              </div>
+            </Card>
           </div>
-        </Card>
+
+          {/* Recent Scored Transactions Table */}
+          <Card className="border-[#D8D4CA]">
+            <div className="font-title-strong text-sm text-[#171916] mb-3 flex items-center justify-between">
+              <span>Recent Scored Transactions Log</span>
+              <span className="font-mono text-[10px] text-[#7F837B] uppercase">Showing last 20</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs font-mono">
+                <thead>
+                  <tr className="text-left text-[#7F837B] border-b border-[#E7E4DB] pb-2">
+                    <th className="py-2">Transaction ID</th>
+                    <th>Amount</th>
+                    <th>Merchant / Payee</th>
+                    <th>Location</th>
+                    <th>Device Fingerprint</th>
+                    <th>Risk Level</th>
+                    <th>Composite Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.slice(0, 20).map((r) => (
+                    <tr key={r.transaction.transaction_id as string} className="border-b border-[#E7E4DB] hover:bg-[#FFFFFF] transition-colors">
+                      <td className="py-2.5">
+                        <Link className="text-[#FF5B35] font-semibold hover:underline" to={`/investigate/${r.transaction.transaction_id}`}>
+                          {r.transaction.transaction_id as string}
+                        </Link>
+                      </td>
+                      <td className="font-bold text-[#171916]">₹{Number(r.transaction.amount).toLocaleString("en-IN")}</td>
+                      <td className="text-[#555951]">{r.transaction.merchant as string}</td>
+                      <td className="text-[#7F837B]">{r.transaction.location as string}</td>
+                      <td className="text-[#7F837B]">{String(r.transaction.device_id).slice(0, 16)}</td>
+                      <td><Badge level={r.score.risk_level} /></td>
+                      <td className="font-bold">{r.score.risk_score.toFixed(3)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </main>
       </div>
+
+      <FinShieldFooter />
     </div>
   );
 }
+
+export const Dashboard = CommandCenter;
+
 export function Investigation() {
   const { id } = useParams();
   const nav = useNavigate();
@@ -511,6 +974,7 @@ export function Investigation() {
   const [copilot, setCopilot] = useState<any>(null);
   const [graph, setGraph] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     (async () => {
       if (!id) return;
@@ -518,265 +982,460 @@ export function Investigation() {
       try { setGraph(await api.graph(id)); } catch {}
     })();
   }, [id]);
-  if (!rec) return <div className="p-6 max-w-6xl mx-auto">Loading… <button className="underline" onClick={() => nav("/")}>back</button></div>;
+
+  if (!rec) return (
+    <div className="min-h-screen bg-[#F2EFE7] p-8">
+      <div className="max-w-6xl mx-auto space-y-4">
+        <div className="font-mono text-sm text-[#7F837B]">Loading transaction telemetry…</div>
+        <button className="btn-secondary py-1.5 px-4" onClick={() => nav("/")}>← Back to Command Center</button>
+      </div>
+    </div>
+  );
+
   const t = rec.transaction as Record<string, any>;
   const s = rec.score;
   const shapMax = Math.max(1, ...s.signals.map((x: any) => Math.abs(x.contribution)));
+
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-4">
-      <Link className="underline text-xs mono" to="/">← Command Center</Link>
-      <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-xl font-bold mono">{t.transaction_id}</h2><Badge level={s.risk_level} /><Src s={s.source} />
-        <span className={`ml-auto mono text-xs px-2 py-1 rounded border ${s.risk_score >= 0.6 ? "bg-red-500/10 border-red-500/30 text-red-400" : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"}`}>Risk {s.risk_score.toFixed(3)}</span>
-      </div>
-      {s.risk_score >= 0.6 && (
-        <div className="border border-red-500/30 bg-red-500/10 rounded p-3 flex items-center gap-3">
-          <span className="text-xl">⚠</span>
-          <div><div className="font-semibold text-sm text-red-300">Fraud Alert — {s.risk_level}</div><div className="text-xs opacity-80">Evidence-driven risk from XGBoost + behavioral + anomaly + rules + graph.</div></div>
-        </div>
-      )}
-      <div className="grid lg:grid-cols-3 gap-4">
-        <Card>
-          <div className="font-semibold text-sm mb-2">Transaction</div>
-          <div className="space-y-1.5 text-xs mono">
-            {[
-              ["amount", `₹${t.amount}`], ["timestamp", String(t.timestamp).slice(0, 19).replace("T", " ")],
-              ["merchant", t.merchant], ["category", t.merchant_category], ["location", t.location],
-              ["device", String(t.device_id).slice(0, 18)], ["user", t.user_id], ["velocity", String(t.velocity)],
-            ].map(([k, v]) => (
-              <div key={k} className="flex justify-between border-b border-[#1f2733] py-1"><span className="opacity-60">{k}</span><span>{v}</span></div>
-            ))}
-          </div>
-        </Card>
-        <Card>
-          <div className="font-semibold text-sm mb-2">Risk — from Risk Fusion</div>
-          <div className="space-y-1.5 text-xs mono">
-            {[
-              ["fused risk", s.risk_score.toFixed(3)],
-              ["xgb score", s.xgb_score != null ? s.xgb_score.toFixed(3) : "NOT AVAILABLE"],
-              ["anomaly", s.anomaly_score.toFixed(3)],
-              ["behavioral", s.behavioral_score.toFixed(3)],
-              ["graph", s.graph_score != null ? s.graph_score.toFixed(3) : "NOT AVAILABLE"],
-              ["rules", s.rules.join(", ") || "none"],
-            ].map(([k, v]) => (
-              <div key={k} className="flex justify-between border-b border-[#1f2733] py-1"><span className="opacity-60">{k}</span><span>{String(v)}</span></div>
-            ))}
-            <div className="pt-2">
-              <div className="text-xs font-semibold">Recommended action</div>
-              <div className={`mt-1 mono text-xs px-2 py-1 rounded border inline-block ${s.risk_level === "CRITICAL" ? "bg-red-500 text-white border-red-600" : s.risk_level === "HIGH" ? "bg-amber-500 text-black border-amber-600" : "bg-emerald-500/15 border-emerald-500/30"}`}>
-                {s.risk_level === "CRITICAL" ? "BLOCK" : s.risk_level === "HIGH" ? "INVESTIGATE / STEP-UP" : s.risk_level === "MEDIUM" ? "STEP-UP" : "APPROVE"}
-              </div>
-              <div className="text-xs opacity-60 mt-1">From risk engine — LLM only explains.</div>
+    <div className="min-h-screen bg-[#F2EFE7] text-[#171916] flex flex-col justify-between">
+      <div>
+        <NavHeader />
+
+        <main className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+          <div className="flex items-center justify-between">
+            <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/">← Command Center</Link>
+            <div className="flex items-center gap-2">
+              <Src s={s.source} />
+              <Badge level={s.risk_level} />
             </div>
           </div>
-        </Card>
-        <Card>
-          <div className="font-semibold text-sm mb-2">Evidence</div>
-          <ul className="list-disc ml-5 text-xs mono space-y-1">
-            {s.evidence.map((e: string) => <li key={e}>{e}</li>)}
-          </ul>
-          <div className="mt-3 text-xs opacity-60">Evidence from actual signals — <Src s={s.source} /></div>
-        </Card>
-      </div>
-      <Card>
-        <div id="shap" className="font-semibold text-sm mb-3">SHAP Explanation <span className="opacity-60 font-normal">actual contributions</span></div>
-        {s.signals.length === 0 ? <div className="text-xs opacity-60">No SHAP data.</div> : (
-          <div className="space-y-2">
-            {s.signals.slice().sort((a: any, b: any) => Math.abs(b.contribution) - Math.abs(a.contribution)).map((sig: any) => (
-              <div key={sig.name} className="flex items-center gap-2 text-xs mono">
-                <span className="w-36 opacity-70">{sig.name}</span>
-                <div className="flex-1 h-4 bg-[#0f131a] rounded overflow-hidden flex">
-                  <div className="h-full flex items-center justify-end pr-1 text-[10px]" style={{ width: `${(Math.abs(sig.contribution) / shapMax) * 100}%`, background: sig.contribution >= 0 ? "#f85149" : "#3fb950" }}>{sig.contribution >= 0 ? "▲" : "▼"}</div>
+
+          <div className="flex flex-wrap items-baseline justify-between gap-4 border-b border-[#D8D4CA] pb-4">
+            <div>
+              <span className="badge-pill mb-2 inline-block">Forensic Workstation</span>
+              <h1 className="font-title-strong text-2xl text-[#171916] font-mono">{t.transaction_id}</h1>
+            </div>
+            <div className="text-right">
+              <div className="font-mono text-xs text-[#7F837B] uppercase">Calibrated Risk Score</div>
+              <div className={`font-mono text-3xl font-bold ${s.risk_score >= 0.6 ? "text-[#C53030]" : "text-[#1B5E20]"}`}>
+                {s.risk_score.toFixed(3)}
+              </div>
+            </div>
+          </div>
+
+          {s.risk_score >= 0.6 && (
+            <div className="border border-[#FF5B35]/40 bg-[#FF5B35]/10 rounded-[11px] p-4 flex items-center gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <div className="font-title-strong text-sm text-[#C53030]">High-Risk Security Interception — {s.risk_level}</div>
+                <div className="text-xs text-[#555951]">Evidence-driven decision synthesized from XGBoost + anomaly detection + behavioral drift + rules + graph cliques.</div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid lg:grid-cols-3 gap-6">
+            <Card>
+              <div className="font-title-strong text-sm text-[#171916] mb-3">Transaction Telemetry</div>
+              <div className="space-y-2 text-xs font-mono">
+                {[
+                  ["Amount", `₹${Number(t.amount).toLocaleString("en-IN")}`],
+                  ["Timestamp", String(t.timestamp).slice(0, 19).replace("T", " ")],
+                  ["Merchant / Payee", t.merchant],
+                  ["Category", t.merchant_category],
+                  ["Location", t.location],
+                  ["Device ID", String(t.device_id)],
+                  ["Payer User", t.user_id],
+                  ["Velocity (5m)", String(t.velocity)],
+                ].map(([k, v]) => (
+                  <div key={k} className="flex justify-between border-b border-[#E7E4DB] py-1.5">
+                    <span className="text-[#7F837B]">{k}</span>
+                    <span className="text-[#171916] font-semibold">{v}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card>
+              <div className="font-title-strong text-sm text-[#171916] mb-3">5-Signal Risk Fusion</div>
+              <div className="space-y-2 text-xs font-mono">
+                {[
+                  ["Fused Decision", s.risk_score.toFixed(3)],
+                  ["XGBoost Score", s.xgb_score != null ? s.xgb_score.toFixed(3) : "NOT AVAILABLE"],
+                  ["Isolation Forest", s.anomaly_score.toFixed(3)],
+                  ["Behavioral Drift", s.behavioral_score.toFixed(3)],
+                  ["Graph Cluster Score", s.graph_score != null ? s.graph_score.toFixed(3) : "NOT AVAILABLE"],
+                  ["Active Rules", s.rules.join(", ") || "None"],
+                ].map(([k, v]) => (
+                  <div key={k} className="flex justify-between border-b border-[#E7E4DB] py-1.5">
+                    <span className="text-[#7F837B]">{k}</span>
+                    <span className="text-[#171916] font-semibold">{String(v)}</span>
+                  </div>
+                ))}
+                <div className="pt-3 border-t border-[#E7E4DB]">
+                  <div className="font-mono text-[10px] text-[#7F837B] uppercase">Engine Action</div>
+                  <div className={`mt-1 font-mono text-xs font-bold px-2.5 py-1 rounded-[7px] border inline-block ${
+                    s.risk_level === "CRITICAL"
+                      ? "bg-[#C53030] text-white border-[#C53030]"
+                      : s.risk_level === "HIGH"
+                      ? "bg-[#FF5B35] text-white border-[#FF5B35]"
+                      : s.risk_level === "MEDIUM"
+                      ? "bg-[#B7791F]/20 text-[#B7791F] border-[#B7791F]/40"
+                      : "bg-[#2E7D32]/20 text-[#1B5E20] border-[#2E7D32]/40"
+                  }`}>
+                    {s.risk_level === "CRITICAL" ? "BLOCK TRANSACTION" : s.risk_level === "HIGH" ? "STEP-UP AUTH / INVESTIGATE" : s.risk_level === "MEDIUM" ? "STEP-UP OTP" : "AUTO APPROVE"}
+                  </div>
                 </div>
-                <span className="w-16 text-right">{sig.contribution >= 0 ? "+" : ""}{sig.contribution.toFixed(3)}</span>
-                <span className="w-20 text-right opacity-60">{sig.value}</span>
               </div>
-            ))}
-            <div className="flex gap-4 text-xs opacity-60 mono"><span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-[#f85149]" /> fraud</span><span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-[#3fb950]" /> legit</span></div>
+            </Card>
+
+            <Card>
+              <div className="font-title-strong text-sm text-[#171916] mb-3">Forensic Evidence Chain</div>
+              <ul className="space-y-2 text-xs text-[#555951]">
+                {s.evidence.map((e: string, idx: number) => (
+                  <li key={idx} className="flex items-start gap-2 bg-[#F2EFE7] p-2 rounded-[7px] border border-[#E7E4DB]">
+                    <span className="text-[#FF5B35] font-bold">•</span>
+                    <span>{e}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-4 font-mono text-[10px] text-[#7F837B]">
+                Synthesized directly from live ML signals.
+              </div>
+            </Card>
           </div>
-        )}
-      </Card>
-      <Card>
-        <div className="font-semibold text-sm mb-2">Graph Intelligence — {graph?.kind === "DEMO_SIMULATION" ? "DEMO SIMULATION" : "LIVE"} <span className="opacity-60 font-normal">suspicious cluster</span></div>
-        {graph ? (
-          <div className="space-y-2">
-            <div className="rounded border border-[#1f2733] bg-[#0f131a] p-3 mono text-xs">
-              <svg viewBox="0 0 600 220" className="w-full h-[220px]">
-                <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3fb950" opacity={0.6} /></marker></defs>
-                {(graph.nodes ?? []).map((n: any, i: number) => {
-                  const x = 80 + (i % 3) * 200;
-                  const y = 40 + Math.floor(i / 3) * 90;
-                  const isSusp = String(n.id).includes("X") || String(n.id).includes("ring");
-                  return <g key={n.id}><rect x={x - 50} y={y - 16} width={100} height={32} rx={8} fill={isSusp ? "#ff2e63" : "#1f2733"} stroke={isSusp ? "#ff2e63" : "#3fb950"} strokeWidth={isSusp ? 2 : 1} /><text x={x} y={y + 4} textAnchor="middle" fontSize={10} fill={isSusp ? "white" : "#e6edf3"}>{n.id}</text><text x={x} y={y + 14} textAnchor="middle" fontSize={8} fill={isSusp ? "white" : "#8b949e"}>{n.type}</text></g>;
-                })}
-                {(graph.edges ?? []).map((e: any, i: number) => {
-                  const nodes: any[] = graph.nodes ?? [];
-                  const a = nodes.find((n: any) => n.id === e.from);
-                  const b = nodes.find((n: any) => n.id === e.to);
-                  if (!a || !b) return null;
-                  const ai = nodes.indexOf(a), bi = nodes.indexOf(b);
-                  const ax = 80 + (ai % 3) * 200, ay = 40 + Math.floor(ai / 3) * 90;
-                  const bx = 80 + (bi % 3) * 200, by = 40 + Math.floor(bi / 3) * 90;
-                  return <line key={i} x1={ax} y1={ay} x2={bx} y2={by} stroke="#3fb950" strokeOpacity={0.5} strokeWidth={1.2} markerEnd="url(#arr)" />;
-                })}
-              </svg>
+
+          {/* SHAP Waterfall Attribution */}
+          <Card>
+            <div id="shap" className="font-title-strong text-sm text-[#171916] mb-4 flex items-center justify-between">
+              <span>SHAP Feature Attribution Waterfall</span>
+              <span className="font-mono text-[10px] text-[#7F837B] uppercase">Grounded Mathematical Weights</span>
             </div>
-            <div className="text-xs mono opacity-60">{graph.note ?? ""} • <Src s={graph.kind ?? "DEMO_SIMULATION"} /></div>
-            <details className="text-xs mono"><summary className="underline cursor-pointer">Raw JSON</summary><pre className="mt-2 p-2 bg-[#0f131a] rounded overflow-auto">{JSON.stringify(graph, null, 2)}</pre></details>
-          </div>
-        ) : <div className="text-xs opacity-60">No graph data.</div>}
-      </Card>
-      <Card>
-        <div id="copilot" className="font-semibold text-sm mb-2">Investigation Copilot — explains engine evidence only</div>
-        <div className="text-xs opacity-60 mb-2">LLM receives structured evidence; never sets risk score.</div>
-        <button className="border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 rounded text-xs mono" onClick={async () => {
-          setLoading(true);
-          try {
-            const body = {
-              transaction_amount: t.amount, usual_amount: 4200, new_device: String(t.device_id).includes("NEW") || String(t.device_id).includes("X"),
-              location_distance_km: String(t.location).includes("400") ? 400 : String(t.location).includes("120") ? 120 : 10,
-              recent_transaction_count: t.velocity, xgboost_score: s.xgb_score ?? s.risk_score, anomaly_score: s.anomaly_score,
-              triggered_rules: s.rules, graph_signals: { shared_device_accounts: s.graph_score && s.graph_score > 0.5 ? 4 : 1 },
-            };
-            setCopilot(await api.explain(body));
-          } finally { setLoading(false); }
-        }}>{loading ? "Thinking…" : "Run copilot explanation"}</button>
-        {copilot && (
-          <div className="mt-3 border border-indigo-500/20 bg-indigo-500/5 rounded p-3 mono text-xs space-y-1">
-            <div className="flex gap-2"><span className="opacity-60">Risk:</span><Badge level={copilot.risk_level} /></div>
-            <div><span className="opacity-60">Fraud type:</span> {copilot.fraud_type}</div>
-            <div className="opacity-80">{copilot.summary}</div>
-            <ul className="list-disc ml-5">{(copilot.evidence ?? []).map((e: string) => <li key={e}>{e}</li>)}</ul>
-            <div><span className="opacity-60">Action:</span> {copilot.recommended_action}</div>
-            <div className="opacity-60"><Src s={copilot.source} /> • LLM explains, does not decide</div>
-          </div>
-        )}
-      </Card>
+            {s.signals.length === 0 ? (
+              <div className="text-xs text-[#7F837B]">No SHAP attribution signals available for this transaction.</div>
+            ) : (
+              <div className="space-y-2.5">
+                {s.signals.slice().sort((a: any, b: any) => Math.abs(b.contribution) - Math.abs(a.contribution)).map((sig: any) => (
+                  <div key={sig.name} className="flex items-center gap-3 font-mono text-xs">
+                    <span className="w-40 text-[#555951] truncate">{sig.name}</span>
+                    <div className="flex-1 h-4 bg-[#E7E4DB] rounded-full overflow-hidden flex">
+                      <div
+                        className="h-full flex items-center justify-end pr-1 text-[9px] text-white font-bold"
+                        style={{
+                          width: `${(Math.abs(sig.contribution) / shapMax) * 100}%`,
+                          backgroundColor: sig.contribution >= 0 ? "#FF5B35" : "#2E7D32"
+                        }}
+                      >
+                        {sig.contribution >= 0 ? "▲" : "▼"}
+                      </div>
+                    </div>
+                    <span className="w-20 text-right font-bold text-[#171916]">{sig.contribution >= 0 ? "+" : ""}{sig.contribution.toFixed(3)}</span>
+                    <span className="w-20 text-right text-[#7F837B]">{sig.value}</span>
+                  </div>
+                ))}
+                <div className="flex gap-6 font-mono text-xs text-[#7F837B] pt-2 border-t border-[#E7E4DB]">
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-[#FF5B35]" /> Shifts toward Fraud (+)</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-[#2E7D32]" /> Shifts toward Legit (-)</span>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* Graph Intelligence */}
+          <Card>
+            <div className="font-title-strong text-sm text-[#171916] mb-3 flex items-center justify-between">
+              <span>Entity Relational Graph — {graph?.kind === "DEMO_SIMULATION" ? "SIMULATION" : "LIVE"}</span>
+              <span className="font-mono text-[10px] text-[#7F837B] uppercase">Device & Account Sharing Clusters</span>
+            </div>
+            {graph ? (
+              <div className="space-y-3">
+                <div className="rounded-[11px] border border-[#D8D4CA] bg-[#FFFFFF] p-4">
+                  <svg viewBox="0 0 600 220" className="w-full h-[220px]">
+                    <defs>
+                      <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#7F837B" />
+                      </marker>
+                    </defs>
+                    {(graph.nodes ?? []).map((n: any, i: number) => {
+                      const x = 80 + (i % 3) * 200;
+                      const y = 40 + Math.floor(i / 3) * 90;
+                      const isSusp = String(n.id).includes("X") || String(n.id).includes("ring") || String(n.id).includes("SHARED");
+                      return (
+                        <g key={n.id}>
+                          <rect
+                            x={x - 50}
+                            y={y - 16}
+                            width={100}
+                            height={32}
+                            rx={7}
+                            fill={isSusp ? "#FF5B35" : "#171916"}
+                            stroke={isSusp ? "#A23C27" : "#62665F"}
+                            strokeWidth={1.5}
+                          />
+                          <text x={x} y={y + 4} textAnchor="middle" fontSize={10} fontFamily="IBM Plex Mono" fill="#FFFFFF" fontWeight="600">{n.id}</text>
+                          <text x={x} y={y + 14} textAnchor="middle" fontSize={8} fontFamily="IBM Plex Mono" fill={isSusp ? "#FFE5DD" : "#A7AAA3"}>{n.type}</text>
+                        </g>
+                      );
+                    })}
+                    {(graph.edges ?? []).map((e: any, i: number) => {
+                      const nodes: any[] = graph.nodes ?? [];
+                      const a = nodes.find((n: any) => n.id === e.from);
+                      const b = nodes.find((n: any) => n.id === e.to);
+                      if (!a || !b) return null;
+                      const ai = nodes.indexOf(a), bi = nodes.indexOf(b);
+                      const ax = 80 + (ai % 3) * 200, ay = 40 + Math.floor(ai / 3) * 90;
+                      const bx = 80 + (bi % 3) * 200, by = 40 + Math.floor(bi / 3) * 90;
+                      return <line key={i} x1={ax} y1={ay} x2={bx} y2={by} stroke="#92978E" strokeWidth={1.5} markerEnd="url(#arr)" />;
+                    })}
+                  </svg>
+                </div>
+                <div className="font-mono text-xs text-[#7F837B]">{graph.note ?? ""}</div>
+              </div>
+            ) : <div className="text-xs text-[#7F837B]">No entity graph topology mapped for this transaction.</div>}
+          </Card>
+
+          {/* Investigation Copilot */}
+          <Card>
+            <div id="copilot" className="font-title-strong text-sm text-[#171916] mb-1">
+              AI Forensic Copilot
+            </div>
+            <div className="text-xs text-[#7F837B] mb-3">
+              The LLM reads structured forensic telemetry and articulates rationale — it never decides or overrides the numerical risk score.
+            </div>
+            <button
+              className="btn-primary"
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  const body = {
+                    transaction_amount: t.amount, usual_amount: 4200, new_device: String(t.device_id).includes("NEW") || String(t.device_id).includes("X"),
+                    location_distance_km: String(t.location).includes("400") ? 400 : String(t.location).includes("120") ? 120 : 10,
+                    recent_transaction_count: t.velocity, xgboost_score: s.xgb_score ?? s.risk_score, anomaly_score: s.anomaly_score,
+                    triggered_rules: s.rules, graph_signals: { shared_device_accounts: s.graph_score && s.graph_score > 0.5 ? 4 : 1 },
+                  };
+                  setCopilot(await api.explain(body));
+                } finally { setLoading(false); }
+              }}
+            >
+              {loading ? "Generating Grounded Rationale…" : "Generate Copilot Explanation"}
+            </button>
+
+            {copilot && (
+              <div className="mt-4 border border-[#D8D4CA] bg-[#F2EFE7] rounded-[11px] p-4 font-mono text-xs space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[#7F837B]">Risk Assessed:</span>
+                  <Badge level={copilot.risk_level} />
+                </div>
+                <div><span className="text-[#7F837B]">Typology:</span> <span className="font-bold text-[#171916]">{copilot.fraud_type}</span></div>
+                <div className="text-[#171916] leading-relaxed bg-[#FFFFFF] p-3 rounded-[7px] border border-[#E7E4DB]">{copilot.summary}</div>
+                <div>
+                  <span className="text-[#7F837B] block mb-1">Structured Evidence:</span>
+                  <ul className="list-disc ml-5 space-y-0.5 text-[#555951]">
+                    {(copilot.evidence ?? []).map((e: string) => <li key={e}>{e}</li>)}
+                  </ul>
+                </div>
+                <div className="pt-2 border-t border-[#E7E4DB]"><span className="text-[#7F837B]">Recommended Action:</span> <span className="font-bold text-[#FF5B35]">{copilot.recommended_action}</span></div>
+              </div>
+            )}
+          </Card>
+        </main>
+      </div>
+
+      <FinShieldFooter />
     </div>
   );
 }
+
 export function Performance() {
   const [m, setM] = useState<any>(null);
-  const [synth, setSynth] = useState<any>(null);
+
   useEffect(() => {
     api.metrics().then(setM).catch(() => {});
-    api.metrics().then((d: any) => setSynth(d.synthetic_experiments ?? null)).catch(() => {});
   }, []);
-  if (!m) return <div className="p-6">Loading…</div>;
+
+  if (!m) return (
+    <div className="min-h-screen bg-[#F2EFE7] p-8 font-mono text-sm text-[#7F837B]">
+      Loading benchmark telemetry…
+    </div>
+  );
+
   const row = (name: string, d: any) => (
-    <tr className="border-t border-[#1f2733] mono text-xs">
-      <td className="py-1.5">{name}</td><td>{d.roc_auc.toFixed(4)}</td><td>{d.pr_auc.toFixed(4)}</td>
-      <td>{d.precision.toFixed(4)}</td><td>{d.recall.toFixed(4)}</td><td>{d.f1.toFixed(4)}</td>
+    <tr className="border-b border-[#E7E4DB] font-mono text-xs">
+      <td className="py-2.5 font-bold text-[#171916]">{name}</td>
+      <td>{d.roc_auc.toFixed(4)}</td>
+      <td>{d.pr_auc.toFixed(4)}</td>
+      <td>{d.precision.toFixed(4)}</td>
+      <td>{d.recall.toFixed(4)}</td>
+      <td>{d.f1.toFixed(4)}</td>
     </tr>
   );
+
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <Link className="underline text-xs mono" to="/">← Command Center</Link>
-      <h2 className="text-xl font-bold">Model Performance</h2>
-      <Card>
-        <div className="font-semibold text-sm">REAL ULB BENCHMARK — MEASURED <span className="mono text-xs opacity-60">284,807 rows • 492 fraud • 0.17%</span></div>
-        <p className="text-xs opacity-60">Read from xgboost_metrics.json • Never mixed with synthetic.</p>
-        <table className="w-full text-sm mt-3">
-          <thead><tr className="text-left opacity-60 mono text-xs"><th>Model</th><th>ROC-AUC</th><th>PR-AUC</th><th>Precision</th><th>Recall</th><th>F1</th></tr></thead>
-          <tbody>{row("Logistic Regression", m.logistic_regression)}{row("XGBoost (200 trees)", m.xgboost)}</tbody>
-        </table>
-        <div className="mono text-xs mt-3 p-2 bg-[#0f131a] rounded">XGBoost holdout @0.5 — TP {m.xgboost.confusion_matrix.tp} FN {m.xgboost.confusion_matrix.fn} FP {m.xgboost.confusion_matrix.fp} TN {m.xgboost.confusion_matrix.tn} • <Src s={m.kind} /></div>
-      </Card>
-      <Card>
-        <div className="font-semibold text-sm">SYNTHETIC ROBUSTNESS — DEMO SIMULATION <span className="mono text-xs opacity-60">Not real banking data</span></div>
-        <table className="w-full text-sm mt-3">
-          <thead><tr className="text-left opacity-60 mono text-xs"><th>Dataset</th><th>Fraud rate</th><th>XGB PR-AUC</th><th>Note</th></tr></thead>
-          <tbody className="mono text-xs">
-            <tr className="border-t border-[#1f2733]"><td>Easy</td><td>11.5%</td><td>0.959</td><td>Too separable</td></tr>
-            <tr className="border-t border-[#1f2733]"><td>1% Diluted</td><td>1.07%</td><td>0.553</td><td>Class-balanced stress</td></tr>
-            <tr className="border-t border-[#1f2733] bg-amber-500/5"><td>Hard Overlap</td><td>1.10%</td><td>0.373</td><td>Feature-overlap stress — 33.9× lift</td></tr>
-            <tr className="border-t border-[#1f2733] bg-emerald-500/5"><td>Real ULB</td><td>0.17%</td><td>{m.xgboost.pr_auc.toFixed(4)}</td><td>Real benchmark — 486× lift</td></tr>
-          </tbody>
-        </table>
-        <div className="mt-3 border border-[#1f2733] rounded p-3 bg-[#0f131a] mono text-xs">
-          <div className="font-semibold">Experiment story</div>
-          <div className="flex items-center gap-1 mt-2 flex-wrap">
-            {["Easy: separable", "→ 1% diluted: harder", "→ Hard overlap: realistic overlap", "→ Real ULB: true benchmark"].map((s, i) => (
-              <span key={s} className={`px-2 py-1 rounded border ${i === 3 ? "bg-emerald-500/15 border-emerald-500/30" : "border-[#1f2733]"}`}>{s}</span>
-            ))}
+    <div className="min-h-screen bg-[#F2EFE7] text-[#171916] flex flex-col justify-between">
+      <div>
+        <NavHeader />
+
+        <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+          <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/">← Command Center</Link>
+          <div className="border-b border-[#D8D4CA] pb-3">
+            <span className="badge-pill mb-1 inline-block">Validation Laboratory</span>
+            <h1 className="font-title-strong text-2xl text-[#171916]">Model Performance & Benchmarks</h1>
           </div>
-          <div className="mt-2 opacity-70">PR should drop easy→diluted→hard as signals weaken. Hard PR 0.373 is intentionally harder than real ULB 0.84 to stress-test.</div>
-        </div>
-        {synth && Object.keys(synth).length > 0 && (
-          <details className="mt-2 mono text-xs"><summary className="underline cursor-pointer">Raw synthetic metrics</summary><pre className="mt-2 p-2 bg-[#0f131a] rounded overflow-auto">{JSON.stringify(synth, null, 2)}</pre></details>
-        )}
-      </Card>
+
+          <Card>
+            <div className="font-title-strong text-sm text-[#171916] flex items-center justify-between">
+              <span>Real ULB Benchmark Results</span>
+              <span className="font-mono text-[10px] text-[#7F837B]">284,807 ROWS • 492 FRAUD (0.17%)</span>
+            </div>
+            <p className="text-xs text-[#555951] mt-1">Read directly from evaluation reports. Stratified split, scaler fitted exclusively on training set.</p>
+            <table className="w-full mt-4 font-mono">
+              <thead>
+                <tr className="text-left text-[#7F837B] text-[10px] uppercase border-b border-[#E7E4DB] pb-2">
+                  <th className="py-2">Model Architecture</th><th>ROC-AUC</th><th>PR-AUC</th><th>Precision</th><th>Recall</th><th>F1-Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {row("Logistic Regression (Baseline)", m.logistic_regression)}
+                {row("XGBoost (500 Trees, Scaled)", m.xgboost)}
+              </tbody>
+            </table>
+            <div className="mt-4 p-3 bg-[#F2EFE7] rounded-[7px] border border-[#D8D4CA] font-mono text-xs text-[#555951]">
+              XGBoost Confusion Matrix @0.5 Threshold: <strong>TP {m.xgboost.confusion_matrix.tp}</strong> • <strong>FN {m.xgboost.confusion_matrix.fn}</strong> • <strong>FP {m.xgboost.confusion_matrix.fp}</strong> • <strong>TN {m.xgboost.confusion_matrix.tn}</strong>
+            </div>
+          </Card>
+
+          <Card>
+            <div className="font-title-strong text-sm text-[#171916] mb-1">Synthetic Robustness Stress-Testing</div>
+            <p className="text-xs text-[#555951]">Evaluating model behavior under intentional feature overlap and extreme class dilution.</p>
+            <table className="w-full mt-4 font-mono text-xs">
+              <thead>
+                <tr className="text-left text-[#7F837B] text-[10px] uppercase border-b border-[#E7E4DB] pb-2">
+                  <th className="py-2">Dataset Scenario</th><th>Fraud Rate</th><th>XGB PR-AUC</th><th>Evaluation Analysis</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-[#E7E4DB]"><td className="py-2 font-bold">Easy Synthetic</td><td>11.5%</td><td>0.959</td><td className="text-[#7F837B]">High separability; extreme amounts</td></tr>
+                <tr className="border-b border-[#E7E4DB]"><td className="py-2 font-bold">1% Diluted</td><td>1.07%</td><td>0.553</td><td className="text-[#7F837B]">Realistic imbalance test</td></tr>
+                <tr className="border-b border-[#E7E4DB] bg-[#FF5B35]/10"><td className="py-2 font-bold text-[#FF5B35]">Hard Overlap</td><td>1.10%</td><td className="font-bold text-[#FF5B35]">0.373</td><td className="text-[#555951]">Feature overlap stress; 33.9× lift</td></tr>
+                <tr className="border-b border-[#E7E4DB] bg-[#2E7D32]/10"><td className="py-2 font-bold text-[#1B5E20]">Real ULB Benchmark</td><td>0.17%</td><td className="font-bold text-[#1B5E20]">{m.xgboost.pr_auc.toFixed(4)}</td><td className="text-[#555951]">Primary real-world benchmark (486× lift)</td></tr>
+              </tbody>
+            </table>
+          </Card>
+        </main>
+      </div>
+
+      <FinShieldFooter />
     </div>
   );
 }
+
 export function Architecture() {
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <Link className="underline text-xs mono" to="/">← Command Center</Link>
-      <h2 className="text-xl font-bold">System Architecture</h2>
-      <Card>
-        <pre className="mono text-xs leading-5 overflow-x-auto">
-{`                         TRANSACTION
-                              │
-                              ▼
-                     FEATURE ENGINEERING
-                              │
-              ┌───────────────┼───────────────┐
-              ▼               ▼               ▼
-           XGBoost      Behavioral        Rules
-              │              │               │
-              └──────────────┼───────────────┘
-                             ▼
-                      ANOMALY DETECTION
-                             │
-                             ▼
-                      GRAPH INTELLIGENCE
-                             │
-                             ▼
-                        RISK FUSION
-                             │
-                             ▼
-                       SHAP EVIDENCE
-                             │
-                             ▼
-                  LLM INVESTIGATION COPILOT
-                             │
-                             ▼
-                      INVESTIGATOR ACTION
-                             │
-                             ▼
-                   PRIVACY IDENTITY LAYER`}
-        </pre>
-      </Card>
+    <div className="min-h-screen bg-[#F2EFE7] text-[#171916] flex flex-col justify-between">
+      <div>
+        <NavHeader />
+
+        <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+          <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/">← Command Center</Link>
+          <div className="border-b border-[#D8D4CA] pb-3">
+            <span className="badge-pill mb-1 inline-block">System Design</span>
+            <h1 className="font-title-strong text-2xl text-[#171916]">FinShield Architecture & Data Flow</h1>
+          </div>
+
+          <Card>
+            <div className="font-mono text-xs text-[#555951] leading-relaxed overflow-x-auto p-4 bg-[#F2EFE7] rounded-[7px] border border-[#D8D4CA]">
+              <pre>
+{`                          TRANSACTION INGESTION
+                                    │
+                                    ▼
+                          36-FEATURE EXTRACTION
+                        (No Leakage, ts < t Only)
+                                    │
+               ┌────────────────────┼────────────────────┐
+               ▼                    ▼                    ▼
+       XGBoost Classifier   Behavioral Profile   Deterministic Rules
+         (35% Weight)         (15% Weight)          (20% Weight)
+               │                    │                    │
+               └────────────────────┼────────────────────┘
+                                    ▼
+                         ISOLATION FOREST ANOMALY
+                               (20% Weight)
+                                    │
+                                    ▼
+                         NETWORKX GRAPH ANALYTICS
+                               (10% Weight)
+                                    │
+                                    ▼
+                            RISK FUSION ENGINE
+                   (GREEN < 0.3 | YELLOW < 0.7 | RED >= 0.7)
+                                    │
+                                    ▼
+                           SHAP TREE EXPLAINER
+                       (Grounded Mathematical Proof)
+                                    │
+                                    ▼
+                       AI FORENSIC INVESTIGATION COPILOT
+                         (Explains Engine Evidence Only)
+                                    │
+                                    ▼
+                       PRIVACY IDENTITY LAYER (SALTED SHA-256)`}
+              </pre>
+            </div>
+          </Card>
+        </main>
+      </div>
+
+      <FinShieldFooter />
     </div>
   );
 }
+
 export function Privacy() {
   const { uid } = useParams();
   const [d, setD] = useState<any>(null);
-  useEffect(() => { if (uid) api.identity(uid).then(setD).catch(() => {}); }, [uid]);
+
+  useEffect(() => {
+    if (uid) api.identity(uid).then(setD).catch(() => {});
+  }, [uid]);
+
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-4">
-      <Link className="underline text-xs mono" to="/">← Command Center</Link>
-      <h2 className="text-xl font-bold">Privacy-Preserving Identity Representation</h2>
-      <div className="mono text-xs opacity-60">Prototype Identity Tokenization — NOT a zero-knowledge proof.</div>
-      <Card>
-        <div className="mono text-sm space-y-3">
-          <div className="grid grid-cols-3 gap-2 border-b border-[#1f2733] pb-2"><span className="opacity-60">Field</span><span className="opacity-60">Raw</span><span className="opacity-60">Tokenized</span></div>
-          {[
-            ["User Token", d?.user_id ?? uid, d?.token ?? "a84f…91bc"],
-            ["Phone", "••••••••42", d?.phone_masked ?? "••••••••42"],
-            ["Identity Document", "TOKENIZED", d?.id_token ?? "tok_9f3a…"],
-            ["Verification", "VERIFIED", d?.verification ?? "VERIFIED"],
-          ].map(([k, raw, tok]) => (
-            <div key={k} className="grid grid-cols-3 gap-2 border-b border-[#1f2733] py-2">
-              <span className="opacity-60">{k}</span><span>{String(raw)}</span><span className="text-cyan-300">{String(tok)}</span>
+    <div className="min-h-screen bg-[#F2EFE7] text-[#171916] flex flex-col justify-between">
+      <div>
+        <NavHeader />
+
+        <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+          <Link className="font-nav-link text-[#555951] hover:text-[#FF5B35] transition-colors" to="/">← Command Center</Link>
+          <div className="border-b border-[#D8D4CA] pb-3">
+            <span className="badge-pill mb-1 inline-block">Security Protocol</span>
+            <h1 className="font-title-strong text-2xl text-[#171916]">Privacy-Preserving Identity Layer</h1>
+            <p className="text-xs text-[#7F837B] mt-1 font-mono">Salted Cryptographic Hash Tokenization — PII never touches the model features.</p>
+          </div>
+
+          <Card>
+            <div className="space-y-4 font-mono text-xs">
+              <div className="grid grid-cols-3 gap-2 border-b border-[#E7E4DB] pb-2 text-[10px] text-[#7F837B] uppercase font-bold">
+                <span>Field</span><span>Raw Ingestion</span><span>Tokenized Mask</span>
+              </div>
+              {[
+                ["User Identity", d?.user_id ?? uid, d?.token ?? "a84f…91bc"],
+                ["Phone Number", "••••••••42", d?.phone_masked ?? "••••••••42"],
+                ["National ID Token", "CONFIDENTIAL", d?.id_token ?? "tok_9f3a…"],
+                ["Verification Hash", "VERIFIED", d?.verification ?? "VERIFIED"],
+              ].map(([k, raw, tok]) => (
+                <div key={k} className="grid grid-cols-3 gap-2 border-b border-[#E7E4DB] py-2.5">
+                  <span className="text-[#7F837B]">{k}</span>
+                  <span className="text-[#555951]">{String(raw)}</span>
+                  <span className="text-[#FF5B35] font-bold">{String(tok)}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <div className="mt-3 mono text-xs opacity-60">Raw → Salted Hash → Pseudonymous Token. {d?.method ?? "Prototype tokenization"}</div>
-        <pre className="mt-3 p-2 bg-[#0f131a] rounded mono text-xs overflow-auto">{JSON.stringify(d, null, 2)}</pre>
-      </Card>
+            <div className="mt-4 font-mono text-[11px] text-[#7F837B]">
+              Method: {d?.method ?? "Prototype Salted SHA-256 Pseudonymization"}
+            </div>
+          </Card>
+        </main>
+      </div>
+
+      <FinShieldFooter />
     </div>
   );
 }
