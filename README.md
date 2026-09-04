@@ -2,205 +2,186 @@
 
 # 🛡️ FinSheild App
 
-### Real-Time Fraud Command Center & Explainability Forensics Copilot
+**The real-time operational dashboard and forensic investigation workstation for the FinSheild fraud intelligence platform.**
 
-[![React 19](https://img.shields.io/badge/React-19.2-blue?logo=react&logoColor=white)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.2-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.3-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
-*The real-time operational interface and analyst workstation for the FinSheild fraud intelligence engine.*
-
-[Live Tour](#-walkthrough--user-flows) • [Architecture](#-system-architecture) • [Quick Start](#-quick-start) • [API Reference](#-api-reference) • [ML Integration](#-integration-with-finsheild-core)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 </div>
 
----
+## 📖 Overview
 
-## 📖 Executive Summary
+This repository contains the presentation and investigation layer (React frontend + FastAPI backend) for the **FinSheild** fraud detection platform, built as a hackathon project. 
 
-**FinSheild App** is the presentation and investigation layer of the FinSheild platform, developed for modern fraud risk teams and forensic investigators. While traditional fraud prevention systems operate as black-box decision engines with opaque block/allow lists, FinSheild provides:
+It provides fraud analysts with a comprehensive toolkit: instant transaction scoring, 5-signal risk fusion breakdowns, SHAP-powered explainability, entity graph forensics, and an AI investigation copilot.
 
-1. **Instant Decisioning via 5-Signal Fusion**: Combines Supervised ML (XGBoost), Unsupervised Anomaly Scoring (Isolation Forest), Behavioral Drift, Network Graph Cliques, and Deterministic Rules.
-2. **Explainable AI Forensics (XAI)**: Generates human-readable, grounded explanations with SHAP attribution so fraud analysts can immediately see *why* a transaction was flagged.
-3. **Interactive Graph Forensics**: Visualizes entity associations (User ↔ Account ↔ Device ↔ Merchant) in real-time to pinpoint mule accounts and device-sharing fraud syndicates.
-4. **Data Honesty by Design**: Transparent labels in the UI (`LIVE_MODEL` vs. `DEMO_FALLBACK`) ensure complete integrity during evaluation and demonstration.
+> [!IMPORTANT]
+> **Companion Repository:** This application acts as the UI and API layer for the core machine learning engine. See the [FinSheild ML Core](https://github.com/shaikhakramshakil/Finsheild) repository for the trained XGBoost model and risk fusion pipelines.
 
----
-
-## 🏛️ System Architecture
+## 🏗️ Architecture
 
 ```mermaid
-graph TB
-    subgraph UI["Frontend Layer (React 19 + Vite + Tailwind CSS)"]
-        CC[Live Command Center]
-        IV[Forensic Investigation & Copilot]
-        PO[Model Performance Observatory]
-        GV[Graph Entity Visualizer]
-        PT[Privacy & Tokenization View]
+graph TD
+    subgraph Frontend [Frontend - React/Vite]
+        UI[React UI]
+        Router[React Router]
+        APIClient[Typed API Client]
+        UI --> Router
+        Router --> APIClient
     end
 
-    subgraph API["Backend API Layer (FastAPI)"]
-        Router[API Endpoints]
-        Store[(In-Memory Transaction & Graph Store)]
-        MetricsLoader[Metrics & Benchmark Loader]
-        
-        subgraph Adapters["Adapter Layer"]
-            RealAdapter[RealMLAdapter]
-            MockAdapter[MockMLAdapter]
-        end
+    subgraph Backend [Backend - FastAPI]
+        API[FastAPI Endpoints]
+        Services[Services / Store]
+        Adapters[ML Adapters]
+        APIClient -- REST --> API
+        API --> Services
+        Services --> Adapters
     end
 
-    subgraph Core["FinSheild ML Core Engine (Sibling Repo)"]
-        XGB[XGBoost Classifier]
-        IF[Isolation Forest]
-        Rules[Deterministic Rules]
-        GraphEng[NetworkX Graph Analytics]
-        SHAP[SHAP Tree Explainer]
+    subgraph Core [ML Core Integration]
+        Real[Real Adapter]
+        Mock[Mock Adapter]
+        MLCore[(FinSheild ML Core Repo)]
+        Adapters --> Real
+        Adapters --> Mock
+        Real --> MLCore
     end
-
-    CC --> Router
-    IV --> Router
-    PO --> Router
-    GV --> Router
-    PT --> Router
-
-    Router --> Store
-    Router --> MetricsLoader
-    Router --> RealAdapter
-    RealAdapter -.->|Fallback if models absent| MockAdapter
-    RealAdapter --> Core
 ```
 
----
+### Directory Structure
 
-## 🚀 Key Features
+```text
+Finsheild-App/
+├── backend/
+│   ├── main.py               # FastAPI app with 11 REST endpoints
+│   ├── schemas.py             # Pydantic contracts (Transaction, ScoreResult, CopilotResponse)
+│   ├── config.py              # ML Core auto-discovery
+│   ├── metrics_loader.py      # Real benchmark metrics ingestion
+│   ├── services/store.py      # In-memory transaction store + scenario generator
+│   ├── adapters/
+│   │   ├── real_adapter.py    # Connects to trained XGBoost + risk fusion pipeline
+│   │   └── mock_adapter.py    # Deterministic demo scorer
+│   └── tests/test_api.py      # 6 API contract tests
+├── frontend/
+│   ├── src/App.tsx             # React Router (5 routes)
+│   ├── src/pages.tsx           # Dashboard, Investigation, Performance, Architecture, Privacy
+│   ├── src/api.ts              # Typed API client
+│   └── src/index.css           # Tailwind CSS dark cyber theme
+├── start.sh                    # One-click launcher
+├── requirements.txt
+└── LICENSE
+```
 
-### 1. Live Command Center
-- Real-time transaction ingestion and scoring table with visual risk badges (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
-- **Interactive Scenario Injector**: Trigger real-world fraud vectors on demand:
-  - 🟢 **Normal**: Typical day-to-day benign transactions.
-  - 🔴 **Account Takeover (ATO)**: Unusual amount + foreign location + new unverified device.
-  - 🟠 **Velocity Abuse**: Burst transaction frequency exceeding rate limits.
-  - 🟣 **Mule Network & Device Sharing**: One hardware fingerprint tied to multiple accounts.
+## ✨ Key Features & Screens
 
-### 2. 5-Signal Risk Fusion Breakdown
-Every scored transaction displays its exact contribution breakdown:
-- **XGBoost Probability** (35% weight)
-- **Isolation Forest Anomaly Score** (20% weight)
-- **Deterministic Rules Triggered** (20% weight)
-- **Behavioral Drift Score** (15% weight)
-- **Graph Centrality & Sharing Score** (10% weight)
+### 📡 Live Command Center
+Real-time transaction stream featuring intuitive risk badges (LOW / MEDIUM / HIGH / CRITICAL). Includes an interactive scenario injector to simulate Normal, Suspicious/ATO, Fraud Ring, or Ambiguous activities instantly.
 
-### 3. Forensic Investigation Copilot
-- Dedicated forensic workstation for analysts.
-- **SHAP Feature Importance**: Shows exactly which features pushed the decision toward fraud (e.g., `amount_deviation_ratio`, `vel_count_300s`, `device_account_count`).
-- **Investigation Copilot**: Produces a grounded narrative explaining the evidence without hallucination, suggesting recommended actions (`APPROVE`, `STEP_UP OTP`, `INVESTIGATE`, `BLOCK`).
+### 🔍 Forensic Investigation View
+Deep-dive analysis interface featuring:
+- **5-Signal Risk Fusion Radar:** XGBoost (35%), Anomaly (20%), Rules (20%), Behavioral (15%), Graph (10%).
+- **SHAP Explanations:** Feature attribution bars explaining the "why" behind the score.
+- **AI Investigation Copilot:** Generates grounded narratives based on engine evidence.
 
-### 4. Interactive Entity Graph Visualizer
-- Maps relational graphs connecting `User`, `Account`, `Device`, and `Merchant`.
-- Exposes device sharing rings and money mule paths that are completely invisible in tabular transaction rows.
+> [!NOTE]
+> **Data Honesty Design:** The UI transparently labels the data source (`LIVE_MODEL` vs `DEMO_FALLBACK`). The LLM Copilot is restricted to explaining evidence—it *never* sets or overrides the risk score itself.
 
-### 5. Privacy & Identity Tokenization
-- Shows how user PII is hashed, salted, and masked before entering model features to maintain strict privacy compliance.
+### 📈 Model Performance Observatory
+Live ingestion of real ULB benchmark metrics (ROC-AUC, PR-AUC) and visualization of synthetic experiment comparisons across varying difficulty distributions (Easy → Diluted → Hard Overlap).
 
----
+### 🕸️ Entity Graph Forensics
+Visualizes complex relationships (User ↔ Account ↔ Device ↔ Merchant) to expose device-sharing rings and mule account chains.
 
-## ⚡ Quick Start
+### 🔐 Privacy & Identity Tokenization
+Demonstrates secure handling of PII using salted SHA-256 tokenization and active phone masking.
 
-### Prerequisites
-- **Node.js** >= 18.0.0
-- **Python** >= 3.11
+## 🚀 Quick Start
 
-### One-Command Launch (Recommended)
-Clone the repository and run the unified launcher script:
+### The One-Click Launcher
+
 ```bash
+chmod +x start.sh
 ./start.sh
 ```
+* **Backend:** http://127.0.0.1:8000 (Swagger docs at `/docs`)
+* **Frontend:** http://127.0.0.1:5173
 
-This single command:
-1. Detects your Python environment (local or sibling `.venv`).
-2. Installs frontend dependencies if needed (`npm install`).
-3. Launches the FastAPI backend daemon on `http://127.0.0.1:8000`.
-4. Starts the Vite development server on `http://127.0.0.1:5173`.
+### Manual Setup
 
----
-
-### Manual Setup & Execution
-
-#### Backend
+**Backend:**
 ```bash
-# 1. Install dependencies
-pip install -r requirements.txt
-
-# 2. Set Python path and start server
-export PYTHONPATH=.
-python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install -r ../requirements.txt
+uvicorn main:app --reload
 ```
-API Documentation will be live at: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-#### Frontend
+**Frontend:**
 ```bash
 cd frontend
-
-# 1. Install packages
 npm install
-
-# 2. Start Vite dev server
 npm run dev
 ```
-Open [http://127.0.0.1:5173](http://127.0.0.1:5173) in your browser.
 
----
+## 🔌 ML Core Integration
 
-## 🔌 Integration with FinSheild Core
+The application is designed to automatically discover the sibling `../Finsheild` repo containing the trained model. 
+* To override the location, set the `FINSHEILD_CORE_PATH` environment variable.
+* If model artifacts are missing, the backend gracefully downgrades to the `MockMLAdapter` (with honest `DEMO_FALLBACK` labels).
 
-`Finsheild-App` is designed to be completely decoupled from the ML training repo:
+## 🧭 10-Step Demo Walkthrough
 
-1. **Auto-Discovery**: The backend looks for the ML Core at `../Finsheild`.
-2. **Explicit Override**: You can define the path using an environment variable:
-   ```bash
-   export FINSHEILD_CORE_PATH="/path/to/Finsheild"
-   ```
-3. **Autonomous Mock Mode**: If the ML Core models or weights are not found, the backend automatically falls back to `MockMLAdapter` with honest `DEMO_FALLBACK` tags in the API response.
+1. Navigate to the **Live Command Center**.
+2. Observe the real-time stream of incoming transactions.
+3. Use the **Scenario Injector** to spawn a "Fraud Ring" transaction.
+4. Click on the injected transaction to open the **Forensic Investigation View**.
+5. Examine the **Risk Fusion Radar** to see the 5-signal breakdown.
+6. Review the **SHAP** feature attribution bars.
+7. Consult the **AI Copilot** for a narrative explanation of the risk factors.
+8. Switch to the **Entity Graph** tab to visualize the device-sharing network.
+9. Visit the **Privacy** tab to observe PII tokenization.
+10. Finally, check the **Performance Observatory** for live benchmark metrics.
 
----
+## 🧰 API Reference
 
-## 📡 API Reference
-
-| Method | Endpoint | Description |
+| Endpoint | Method | Description |
 |---|---|---|
-| `GET` | `/api/health` | Healthcheck and model readiness probe |
-| `GET` | `/api/model/metrics` | Ingests real benchmark ROC/PR metrics |
-| `GET` | `/api/model/status` | Reports presence of XGBoost, graph, SHAP, and fusion modules |
-| `POST` | `/api/transaction/score` | Scores an arbitrary transaction payload |
-| `POST` | `/api/transactions/generate` | Generates a scenario transaction (`normal`, `suspicious`, `fraud_ring`, `ambiguous`) |
-| `GET` | `/api/transactions` | Lists recent scored transactions |
-| `GET` | `/api/transactions/{id}` | Retrieves deep-dive transaction payload and scores |
-| `POST` | `/api/investigation/explain` | Returns grounded copilot explanation and evidence |
-| `GET` | `/api/graph/{id}` | Returns graph nodes and edges for visual forensic analysis |
-| `GET` | `/api/identity/{id}` | Demonstrates tokenized and salted user identity |
-| `POST` | `/api/demo/reset` | Clears simulator memory for fresh demonstration |
-
----
+| `/api/health` | GET | System health check |
+| `/api/model/metrics` | GET | Retrieve model performance metrics |
+| `/api/model/status` | GET | Check ML Core connection status |
+| `/api/transaction/score` | POST | Score a single transaction |
+| `/api/transactions/generate` | POST | Generate a batch using `?scenario=...` |
+| `/api/transactions` | GET | Fetch recent transactions |
+| `/api/transactions/{id}` | GET | Get details of a specific transaction |
+| `/api/investigation/explain` | POST | Get AI Copilot narrative explanation |
+| `/api/graph/{txn_id}` | GET | Retrieve entity graph relationships |
+| `/api/identity/{user_id}` | GET | Retrieve tokenized user identity details |
+| `/api/demo/reset` | POST | Reset the in-memory data store |
 
 ## 🧪 Testing
 
-Run backend test suite:
+The backend includes 6 comprehensive contract tests verifying:
+- Health and metrics endpoints
+- Generate and investigate flow
+- Correct risk ordering
+- AI Copilot score restrictions
+- Graph and identity label verification
+
+Run tests with:
 ```bash
-PYTHONPATH=. pytest backend/tests/ -v
+cd backend
+pytest tests/test_api.py
 ```
 
-Run frontend build verification:
-```bash
-cd frontend && npm run build
-```
-
----
+Frontend build stability is verified via `npm run build`.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
