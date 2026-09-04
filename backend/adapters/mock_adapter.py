@@ -72,6 +72,11 @@ class MockMLAdapter:
             rules.append("UNUSUAL_LOCATION")
             evidence.append(f"Geographic jump: location is ~{int(dist_km or 400)}km from home")
 
+        if amt >= 100000:
+            rules.append("UPI_HIGH_VALUE_ANOMALY")
+            rules.append("EXCEEDS_SINGLE_TRANSACTION_LIMIT")
+            evidence.append(f"High-Value Anomaly: ₹{amt:,.2f} exceeds standard single-transaction threshold (₹1 Lakh)")
+
         if scenario == "suspicious" and not rules:
             rules = ["NEW_DEVICE_HIGH_VALUE", "HIGH_VELOCITY"]
             evidence = [
@@ -89,7 +94,13 @@ class MockMLAdapter:
             evidence = ["Device matches historical profile", "Amount within usual range"]
 
         base = {"normal": 0.08, "suspicious": 0.91, "fraud_ring": 0.87, "ambiguous": 0.55}.get(scenario, 0.15)
-        if len(rules) >= 2 or is_shared or (is_new_device and amt_dev > 3.0):
+        if amt >= 100000:
+            base = 0.92
+        elif amt <= 500 and vel < 5 and not is_shared:
+            base = 0.03
+            rules = []
+            evidence = [f"Everyday transaction (₹{amt:,.2f}) verified safe", "Payment within normal UPI limits"]
+        elif len(rules) >= 2 or is_shared or (is_new_device and amt_dev > 3.0):
             base = max(base, 0.82)
         elif len(rules) == 1:
             base = max(base, 0.45)

@@ -223,6 +223,11 @@ class RealMLAdapter:
             rules.append("OFFHOURS_HIGH_VALUE")
             evidence.append(f"Off-hours high-value transaction (${amt:,.2f} at {hour:02d}:00 local time)")
 
+        if amt >= 100000:
+            rules.append("UPI_HIGH_VALUE_ANOMALY")
+            rules.append("EXCEEDS_SINGLE_TRANSACTION_LIMIT")
+            evidence.append(f"High-Value Anomaly: ₹{amt:,.2f} exceeds standard single-transaction threshold (₹1 Lakh)")
+
         if dist_km >= 300 or "foreign" in loc or "abroad" in loc:
             rules.append("UNUSUAL_LOCATION")
             evidence.append(f"Geographic jump: payment location is ~{int(dist_km or 400)}km from primary residence")
@@ -272,7 +277,13 @@ class RealMLAdapter:
             0.15 * behavioral +
             0.10 * graph
         )
-        if len(rules) >= 2 or is_shared or (is_new_device and amt_dev > 3.0):
+        if amt >= 100000:
+            fused = max(fused, 0.89)
+        elif amt <= 500 and vel < 5 and not is_shared:
+            fused = min(fused, 0.035)
+            rules = []
+            evidence = [f"Everyday transaction (₹{amt:,.2f}) verified safe", "Amount and velocity within standard UPI parameters"]
+        elif len(rules) >= 2 or is_shared or (is_new_device and amt_dev > 3.0):
             fused = max(fused, 0.72)
         elif len(rules) == 1:
             fused = max(fused, 0.38)

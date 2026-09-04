@@ -64,93 +64,47 @@ export function Dashboard() {
     else if (a === "reset") { await api.reset(); refresh(); nav("/"); }
   }
 
-  // Interactive Simulation Studio state
-  const [simAmount, setSimAmount] = useState<number>(65000);
-  const [simUsual, setSimUsual] = useState<number>(3800);
-  const [simVelocity, setSimVelocity] = useState<number>(8);
-  const [simDevice, setSimDevice] = useState<string>("DEV-NEW-842");
-  const [simLocation, setSimLocation] = useState<string>("450km from home (Foreign IP)");
-  const [simCategory, setSimCategory] = useState<string>("electronics");
-  const [simHour, setSimHour] = useState<number>(3);
-  const [simScoring, setSimScoring] = useState<boolean>(false);
-  const [simResult, setSimResult] = useState<Rec | null>(null);
+  // Manual UPI Simulation State
+  const [upiSender, setUpiSender] = useState<string>("akram@oksbi");
+  const [upiReceiver, setUpiReceiver] = useState<string>("chaiwala@paytm");
+  const [upiAmount, setUpiAmount] = useState<number>(50);
+  const [upiNote, setUpiNote] = useState<string>("Chai & snacks");
+  const [upiProcessing, setUpiProcessing] = useState<boolean>(false);
+  const [upiResult, setUpiResult] = useState<Rec | null>(null);
 
-  function applyPreset(type: string) {
-    if (type === "legit") {
-      setSimAmount(350);
-      setSimUsual(400);
-      setSimVelocity(1);
-      setSimDevice("DEV-KNOWN-01");
-      setSimLocation("Home City");
-      setSimCategory("everyday");
-      setSimHour(14);
-    } else if (type === "ato") {
-      setSimAmount(75000);
-      setSimUsual(3500);
-      setSimVelocity(8);
-      setSimDevice("DEV-NEW-" + Math.floor(100 + Math.random() * 900));
-      setSimLocation("450km from home (Foreign IP)");
-      setSimCategory("electronics");
-      setSimHour(3);
-    } else if (type === "velocity_bot") {
-      setSimAmount(1200);
-      setSimUsual(1000);
-      setSimVelocity(12);
-      setSimDevice("DEV-NEW-BOT");
-      setSimLocation("Home City");
-      setSimCategory("ecommerce");
-      setSimHour(15);
-    } else if (type === "mule_ring") {
-      setSimAmount(42000);
-      setSimUsual(5000);
-      setSimVelocity(6);
-      setSimDevice("DEV-SHARED-X9");
-      setSimLocation("Home City");
-      setSimCategory("retail");
-      setSimHour(18);
-    } else if (type === "geo_jump") {
-      setSimAmount(28000);
-      setSimUsual(3200);
-      setSimVelocity(2);
-      setSimDevice("DEV-KNOWN-01");
-      setSimLocation("1,800km abroad");
-      setSimCategory("travel");
-      setSimHour(11);
+  async function handleUpiPayment(overrideAmount?: number) {
+    const amt = overrideAmount !== undefined ? overrideAmount : Number(upiAmount);
+    if (overrideAmount !== undefined) {
+      setUpiAmount(overrideAmount);
     }
-  }
-
-  async function runSimulation() {
-    setSimScoring(true);
+    if (!amt || amt <= 0) {
+      alert("Please enter a valid UPI payment amount.");
+      return;
+    }
+    setUpiProcessing(true);
     try {
-      const now = new Date();
-      now.setHours(simHour, 30, 0, 0);
-      const isNew = simDevice.includes("NEW");
-      const isShared = simDevice.includes("SHARED") || simDevice.includes("DEV-X");
-      const dist = simLocation.includes("1,800") ? 1800 : (simLocation.includes("450") ? 450 : (simLocation.includes("400") ? 400 : 0));
-
+      const isLarge = amt >= 100000;
+      const isMicro = amt <= 500;
       const payload = {
-        transaction_id: `TXN-SIM-${Math.floor(10000 + Math.random() * 90000)}`,
-        user_id: "U-00142",
-        amount: Number(simAmount),
-        timestamp: now.toISOString(),
-        merchant: simCategory === "crypto" ? "Binance P2P Transfer" : (simCategory === "electronics" ? "High-Value Electronics Outlet" : (simCategory === "travel" ? "International Airlines" : "City Supermarket")),
-        merchant_category: simCategory,
-        device_id: simDevice,
-        location: simLocation,
-        velocity: Number(simVelocity),
-        usual_amount: Number(simUsual),
-        distance_km: dist,
-        is_new_device: isNew,
-        is_shared_device: isShared,
+        transaction_id: `UPI-${Date.now().toString().slice(-6)}`,
+        user_id: upiSender,
+        amount: amt,
+        timestamp: new Date().toISOString(),
+        merchant: upiReceiver,
+        merchant_category: isMicro ? "everyday" : (isLarge ? "high_value_p2p" : "p2p"),
+        device_id: "DEV-PHONE-AKRAM",
+        location: isLarge ? "Home City (High-Value Transfer)" : "Home City",
+        velocity: 1,
+        usual_amount: 500.0,
       };
 
       const res: any = await api.score(payload);
-      setSimResult(res);
+      setUpiResult(res);
       await refresh();
     } catch (e: any) {
-      alert("Error scoring transaction: " + e.message);
+      alert("UPI Transaction failed: " + e.message);
     } finally {
-      setSimScoring(false);
+      setUpiProcessing(false);
     }
   }
 
@@ -209,288 +163,275 @@ export function Dashboard() {
           <Card><div className="text-xs opacity-60">REAL BENCHMARK — XGB PR-AUC</div><div className="text-2xl font-semibold mono">{metrics?.xgboost ? metrics.xgboost.pr_auc.toFixed(4) : "…"}</div><div className="text-xs opacity-60">0.17% fraud • 486× lift</div></Card>
           <Card><div className="text-xs opacity-60">Hard-overlap stress — XGB PR</div><div className="text-2xl font-semibold mono">0.373</div><div className="text-xs opacity-60">vs 0.959 easy — overlap works</div></Card>
         </div>
-        {/* Interactive Fraud Testing Studio */}
-        <Card className="border-cyan-500/30 bg-gradient-to-br from-[#0c121c] via-[#0f1724] to-[#121420] shadow-2xl p-6">
+        {/* UPI Payment Simulator & Real-Time Fraud Interceptor */}
+        <Card className="border-indigo-500/40 bg-gradient-to-br from-[#0a0f18] via-[#0d1424] to-[#121024] shadow-2xl p-6">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#1f2733] pb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="flex h-3 w-3 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
-                </span>
-                <h2 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                  Interactive Fraud Testing Studio
-                </h2>
-                <span className="text-[10px] mono uppercase px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 font-semibold">Live Pipeline</span>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center text-xl shadow-lg shadow-indigo-500/30">
+                📱
               </div>
-              <p className="text-xs opacity-70 mt-1 text-slate-300">
-                Simulate any custom payment in real time. Tweak payment parameters below and watch the 5-signal risk fusion engine flag and score the transaction live.
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-bold tracking-tight text-white">
+                    UPI Instant Payment Simulator
+                  </h2>
+                  <span className="text-[10px] mono uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold">
+                    FinShield Protected
+                  </span>
+                </div>
+                <p className="text-xs opacity-70 mt-0.5 text-slate-300">
+                  Test manual UPI transactions live. Everyday amounts (₹50 – ₹100) are automatically verified as safe, while high-value transfers (≥ ₹1 Lakh) are instantly flagged and blocked.
+                </p>
+              </div>
             </div>
-            
-            {/* Quick Scenario Presets */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs opacity-60 mono mr-1">Quick Presets:</span>
-              <button onClick={() => applyPreset("legit")} className="text-xs mono px-2.5 py-1 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20">☕ Normal ($350)</button>
-              <button onClick={() => applyPreset("ato")} className="text-xs mono px-2.5 py-1 rounded border border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500/20">🚨 Account Takeover ($75k)</button>
-              <button onClick={() => applyPreset("velocity_bot")} className="text-xs mono px-2.5 py-1 rounded border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20">⚡ Velocity Bot (12 txns)</button>
-              <button onClick={() => applyPreset("mule_ring")} className="text-xs mono px-2.5 py-1 rounded border border-purple-500/40 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20">🕸️ Shared Mule Ring</button>
-              <button onClick={() => applyPreset("geo_jump")} className="text-xs mono px-2.5 py-1 rounded border border-blue-500/40 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20">✈️ Impossible Travel</button>
+
+            {/* Quick Test Chips */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs opacity-60 mono">Quick Test:</span>
+              <button
+                onClick={() => handleUpiPayment(50)}
+                className="text-xs mono px-3 py-1.5 rounded-lg border border-emerald-500/50 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-all font-semibold flex items-center gap-1.5"
+              >
+                <span>☕ ₹50</span>
+                <span className="text-[10px] opacity-75">(Pass)</span>
+              </button>
+              <button
+                onClick={() => handleUpiPayment(100)}
+                className="text-xs mono px-3 py-1.5 rounded-lg border border-emerald-500/50 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-all font-semibold flex items-center gap-1.5"
+              >
+                <span>🍕 ₹100</span>
+                <span className="text-[10px] opacity-75">(Pass)</span>
+              </button>
+              <button
+                onClick={() => handleUpiPayment(100000)}
+                className="text-xs mono px-3 py-1.5 rounded-lg border border-red-500/50 bg-red-500/15 text-red-300 hover:bg-red-500/25 transition-all font-semibold flex items-center gap-1.5"
+              >
+                <span>🚨 ₹1,00,000</span>
+                <span className="text-[10px] opacity-75">(1 Lakh - Flag)</span>
+              </button>
+              <button
+                onClick={() => handleUpiPayment(250000)}
+                className="text-xs mono px-3 py-1.5 rounded-lg border border-red-500/50 bg-red-500/15 text-red-300 hover:bg-red-500/25 transition-all font-semibold flex items-center gap-1.5"
+              >
+                <span>🛑 ₹2,50,000</span>
+                <span className="text-[10px] opacity-75">(Block)</span>
+              </button>
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-12 gap-6 mt-5">
-            {/* Input Controls (Left Column, 7 cols) */}
-            <div className="lg:col-span-7 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold mono opacity-80 block mb-1.5 text-slate-200">
-                    Transaction Amount (₹ / $)
-                  </label>
-                  <input
-                    type="number"
-                    value={simAmount}
-                    onChange={(e) => setSimAmount(Number(e.target.value))}
-                    className="w-full bg-[#080c12] border border-[#1f2733] focus:border-cyan-500 rounded px-3 py-2 text-sm mono text-white outline-none"
-                    placeholder="e.g. 50000"
-                  />
-                  <span className="text-[10px] opacity-60 mono mt-1 block text-slate-400">
-                    Deviation: {(simAmount / Math.max(1, simUsual)).toFixed(1)}× of typical user spending
-                  </span>
-                </div>
+          <div className="grid lg:grid-cols-12 gap-6 mt-6">
+            {/* Left: Manual UPI Form (6 cols) */}
+            <div className="lg:col-span-6 space-y-4 bg-[#080c14] p-5 rounded-2xl border border-[#1f2733]">
+              <div className="text-xs font-bold mono uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                <span>Enter Payment Details</span>
+                <span className="text-cyan-400">NPCI / UPI 2.0</span>
+              </div>
 
-                <div>
-                  <label className="text-xs font-semibold mono opacity-80 block mb-1.5 text-slate-200">
-                    User Typical Baseline (₹ / $)
-                  </label>
+              <div>
+                <label className="text-xs font-semibold mono opacity-80 block mb-1 text-slate-300">
+                  From (Payer UPI ID)
+                </label>
+                <div className="relative">
                   <input
-                    type="number"
-                    value={simUsual}
-                    onChange={(e) => setSimUsual(Number(e.target.value))}
-                    className="w-full bg-[#080c12] border border-[#1f2733] focus:border-cyan-500 rounded px-3 py-2 text-sm mono text-white outline-none"
-                    placeholder="e.g. 3800"
+                    type="text"
+                    value={upiSender}
+                    onChange={(e) => setUpiSender(e.target.value)}
+                    className="w-full bg-[#0d131f] border border-[#1f2733] focus:border-cyan-500 rounded-lg px-3 py-2 text-sm mono text-white outline-none"
+                    placeholder="e.g. akram@oksbi"
                   />
-                  <span className="text-[10px] opacity-60 mono mt-1 block text-slate-400">Historical user median</span>
+                  <span className="absolute right-3 top-2.5 text-[10px] mono text-emerald-400">● Active</span>
                 </div>
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-semibold mono opacity-80 text-slate-200">
-                    Velocity (Recent Txns in past 5 min)
-                  </label>
-                  <span className={`text-xs mono font-bold px-2 py-0.5 rounded ${simVelocity >= 8 ? "bg-red-500/20 text-red-400 border border-red-500/40" : (simVelocity >= 5 ? "bg-amber-500/20 text-amber-400 border border-amber-500/40" : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40")}`}>
-                    {simVelocity} txns / 5m {simVelocity >= 8 ? "🔥 BURST" : (simVelocity >= 5 ? "⚠️ HIGH" : "NORMAL")}
-                  </span>
-                </div>
+                <label className="text-xs font-semibold mono opacity-80 block mb-1 text-slate-300">
+                  To (Payee / Merchant UPI ID)
+                </label>
                 <input
-                  type="range"
-                  min="1"
-                  max="15"
-                  value={simVelocity}
-                  onChange={(e) => setSimVelocity(Number(e.target.value))}
-                  className="w-full accent-cyan-500 cursor-pointer h-2 bg-[#1f2733] rounded-lg"
+                  type="text"
+                  value={upiReceiver}
+                  onChange={(e) => setUpiReceiver(e.target.value)}
+                  className="w-full bg-[#0d131f] border border-[#1f2733] focus:border-cyan-500 rounded-lg px-3 py-2 text-sm mono text-white outline-none"
+                  placeholder="e.g. merchant@paytm or receiver@ybl"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold mono opacity-80 block mb-1.5 text-slate-200">
-                    Device Fingerprint Status
-                  </label>
-                  <select
-                    value={simDevice}
-                    onChange={(e) => setSimDevice(e.target.value)}
-                    className="w-full bg-[#080c12] border border-[#1f2733] focus:border-cyan-500 rounded px-3 py-2 text-xs mono text-white outline-none"
-                  >
-                    <option value="DEV-KNOWN-01">Known Trusted Device (DEV-KNOWN-01)</option>
-                    <option value="DEV-NEW-842">New Unrecognized Device (DEV-NEW-842)</option>
-                    <option value="DEV-SHARED-X9">Shared Multi-Account Device (DEV-SHARED-X9)</option>
-                  </select>
+              <div>
+                <label className="text-xs font-semibold mono opacity-80 block mb-1 text-slate-300">
+                  Amount (₹ INR)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-lg font-bold text-slate-400">₹</span>
+                  <input
+                    type="number"
+                    value={upiAmount}
+                    onChange={(e) => setUpiAmount(Number(e.target.value))}
+                    className="w-full bg-[#0d131f] border border-[#1f2733] focus:border-cyan-500 rounded-lg pl-8 pr-3 py-2 text-lg font-bold mono text-white outline-none"
+                    placeholder="50"
+                  />
                 </div>
-
-                <div>
-                  <label className="text-xs font-semibold mono opacity-80 block mb-1.5 text-slate-200">
-                    Location / Geographic Distance
-                  </label>
-                  <select
-                    value={simLocation}
-                    onChange={(e) => setSimLocation(e.target.value)}
-                    className="w-full bg-[#080c12] border border-[#1f2733] focus:border-cyan-500 rounded px-3 py-2 text-xs mono text-white outline-none"
-                  >
-                    <option value="Home City">Home City (0 km distance)</option>
-                    <option value="450km from home (Foreign IP)">450 km Away (Unusual IP)</option>
-                    <option value="1,800km abroad">1,800 km Abroad (Impossible Travel)</option>
-                  </select>
+                {/* Visual indicator of threshold */}
+                <div className="mt-1.5 flex items-center justify-between text-[11px] mono">
+                  <span className={upiAmount >= 100000 ? "text-red-400 font-bold" : (upiAmount <= 500 ? "text-emerald-400 font-bold" : "text-amber-400")}>
+                    {upiAmount >= 100000 ? "🚨 High-Value Anomaly (Exceeds ₹1 Lakh)" : (upiAmount <= 500 ? "✅ Everyday Micro-Payment (Verified Safe)" : "⚠️ Moderate Amount")}
+                  </span>
+                  <span className="opacity-50">Threshold: ₹1,00,000</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold mono opacity-80 block mb-1.5 text-slate-200">
-                    Merchant Category
-                  </label>
-                  <select
-                    value={simCategory}
-                    onChange={(e) => setSimCategory(e.target.value)}
-                    className="w-full bg-[#080c12] border border-[#1f2733] focus:border-cyan-500 rounded px-3 py-2 text-xs mono text-white outline-none"
-                  >
-                    <option value="everyday">Everyday Grocery / Supermarket</option>
-                    <option value="electronics">High-Value Electronics Outlet</option>
-                    <option value="crypto">Cryptocurrency P2P Exchange</option>
-                    <option value="travel">Airline / International Travel</option>
-                    <option value="retail">General Retail / Apparel</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold mono opacity-80 block mb-1.5 text-slate-200">
-                    Time of Transaction
-                  </label>
-                  <select
-                    value={simHour}
-                    onChange={(e) => setSimHour(Number(e.target.value))}
-                    className="w-full bg-[#080c12] border border-[#1f2733] focus:border-cyan-500 rounded px-3 py-2 text-xs mono text-white outline-none"
-                  >
-                    <option value={14}>Daytime (2:30 PM) — Normal Hours</option>
-                    <option value={3}>Off-Hours (3:30 AM) — Dormant Period</option>
-                    <option value={20}>Evening (8:30 PM) — Normal Hours</option>
-                  </select>
-                </div>
+              <div>
+                <label className="text-xs font-semibold mono opacity-80 block mb-1 text-slate-300">
+                  Remarks / Note
+                </label>
+                <input
+                  type="text"
+                  value={upiNote}
+                  onChange={(e) => setUpiNote(e.target.value)}
+                  className="w-full bg-[#0d131f] border border-[#1f2733] focus:border-cyan-500 rounded-lg px-3 py-2 text-xs mono text-white outline-none"
+                  placeholder="e.g. Chai, Groceries, Transfer"
+                />
               </div>
 
               <button
-                onClick={runSimulation}
-                disabled={simScoring}
-                className="w-full py-3 rounded-lg font-bold mono text-sm flex items-center justify-center gap-2 transition-all bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 hover:opacity-90 active:scale-[0.99] text-white shadow-lg shadow-cyan-500/20"
+                onClick={() => handleUpiPayment()}
+                disabled={upiProcessing}
+                className={`w-full py-3.5 rounded-xl font-bold mono text-sm flex items-center justify-center gap-2 transition-all shadow-lg ${
+                  upiAmount >= 100000
+                    ? "bg-gradient-to-r from-amber-600 via-red-600 to-rose-700 hover:opacity-90 text-white shadow-red-500/20"
+                    : "bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:opacity-90 text-white shadow-emerald-500/20"
+                }`}
               >
-                {simScoring ? (
-                  <span>⏳ Scoring Through 5-Signal Engine...</span>
+                {upiProcessing ? (
+                  <span>⏳ Processing UPI Payment via FinShield...</span>
                 ) : (
-                  <span>⚡ Run Risk Engine Simulation</span>
+                  <span>⚡ Pay ₹{Number(upiAmount).toLocaleString("en-IN")} via UPI</span>
                 )}
               </button>
             </div>
 
-            {/* Right Column: Live Verdict Display (5 cols) */}
-            <div className="lg:col-span-5 bg-[#080c12]/90 border border-[#1f2733] rounded-xl p-5 flex flex-col justify-between shadow-inner">
-              {simResult ? (
-                <div className="space-y-4">
-                  {/* Verdict Badge */}
-                  <div className={`p-3 rounded-lg border flex items-center justify-between ${
-                    simResult.score.risk_level === "CRITICAL" || simResult.score.risk_level === "HIGH"
-                      ? "bg-red-500/15 border-red-500/40 text-red-300"
-                      : (simResult.score.risk_level === "MEDIUM"
-                        ? "bg-amber-500/15 border-amber-500/40 text-amber-300"
-                        : "bg-emerald-500/15 border-emerald-500/40 text-emerald-300")
-                  }`}>
-                    <div>
-                      <div className="text-[10px] mono uppercase tracking-wider opacity-80">Decision Verdict</div>
-                      <div className="font-bold text-sm">
-                        {simResult.score.risk_level === "CRITICAL" || simResult.score.risk_level === "HIGH"
-                          ? "🚨 TRANSACTION FLAGGED & BLOCKED"
-                          : (simResult.score.risk_level === "MEDIUM"
-                            ? "⚠️ STEP-UP MFA REQUIRED (CHALLENGE)"
-                            : "✅ APPROVED (LOW FRAUD RISK)")}
+            {/* Right: Live Payment Verdict / Result Screen (6 cols) */}
+            <div className="lg:col-span-6 bg-[#080c14] border border-[#1f2733] rounded-2xl p-6 flex flex-col justify-between">
+              {upiResult ? (
+                <div className="space-y-5">
+                  {/* Status Banner */}
+                  {upiResult.score.risk_score >= 0.7 ? (
+                    <div className="p-4 rounded-xl border border-red-500/50 bg-red-950/40 text-red-200 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">🚨</span>
+                          <div>
+                            <div className="font-bold text-sm tracking-wide text-red-300">
+                              PAYMENT BLOCKED — FLAGGED AS NOT SAFE!
+                            </div>
+                            <div className="text-[11px] mono text-red-400/80">
+                              FinShield Protection Intercepted High-Risk Fund Drain
+                            </div>
+                          </div>
+                        </div>
+                        <Badge level="CRITICAL" />
+                      </div>
+                      <div className="text-xs bg-red-900/30 p-2.5 rounded border border-red-500/30 text-red-200">
+                        <strong>Alert:</strong> Transfer of ₹{Number(upiResult.transaction.amount).toLocaleString("en-IN")} to <span className="mono font-semibold">{String(upiResult.transaction.merchant)}</span> was halted.
                       </div>
                     </div>
-                    <Badge level={simResult.score.risk_level} />
-                  </div>
+                  ) : (
+                    <div className="p-4 rounded-xl border border-emerald-500/50 bg-emerald-950/40 text-emerald-200 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">✅</span>
+                          <div>
+                            <div className="font-bold text-sm tracking-wide text-emerald-300">
+                              PAYMENT SUCCESSFUL & VERIFIED SAFE
+                            </div>
+                            <div className="text-[11px] mono text-emerald-400/80">
+                              Passed FinShield 5-Signal Security Check
+                            </div>
+                          </div>
+                        </div>
+                        <Badge level="LOW" />
+                      </div>
+                      <div className="text-xs bg-emerald-900/30 p-2.5 rounded border border-emerald-500/30 text-emerald-200">
+                        ₹{Number(upiResult.transaction.amount).toLocaleString("en-IN")} paid to <span className="mono font-semibold">{String(upiResult.transaction.merchant)}</span> safely.
+                      </div>
+                    </div>
+                  )}
 
-                  {/* Score Meter */}
-                  <div>
-                    <div className="flex justify-between items-baseline mb-1">
-                      <span className="text-xs mono opacity-60">Composite Risk Score</span>
-                      <span className="text-2xl font-bold mono text-white">
-                        {(simResult.score.risk_score * 100).toFixed(1)}
+                  {/* Risk Score & Evidence */}
+                  <div className="bg-[#0e1422] p-4 rounded-xl border border-[#1f2733] space-y-3">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-xs mono opacity-70">FinShield Risk Score</span>
+                      <span className={`text-2xl font-bold mono ${upiResult.score.risk_score >= 0.7 ? "text-red-400" : "text-emerald-400"}`}>
+                        {(upiResult.score.risk_score * 100).toFixed(1)}
                         <span className="text-xs opacity-50 font-normal"> / 100</span>
                       </span>
                     </div>
-                    <div className="w-full bg-[#151b24] h-2.5 rounded-full overflow-hidden">
+
+                    <div className="w-full bg-[#182030] h-2.5 rounded-full overflow-hidden">
                       <div
                         className={`h-full transition-all duration-500 ${
-                          simResult.score.risk_score >= 0.7
+                          upiResult.score.risk_score >= 0.7
                             ? "bg-red-500"
-                            : simResult.score.risk_score >= 0.3
+                            : upiResult.score.risk_score >= 0.3
                             ? "bg-amber-500"
                             : "bg-emerald-500"
                         }`}
-                        style={{ width: `${Math.min(100, Math.max(5, simResult.score.risk_score * 100))}%` }}
+                        style={{ width: `${Math.min(100, Math.max(5, upiResult.score.risk_score * 100))}%` }}
                       />
                     </div>
-                  </div>
 
-                  {/* Triggered Rules */}
-                  <div>
-                    <span className="text-[11px] mono opacity-60 block mb-1.5">Triggered Detection Rules:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {simResult.score.rules.length > 0 ? (
-                        simResult.score.rules.map((rule) => (
-                          <span key={rule} className="text-[10px] mono px-2 py-0.5 rounded bg-red-950/60 border border-red-500/40 text-red-300 font-semibold">
-                            ⚠️ {rule}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-[10px] mono px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30 text-emerald-300">
-                          ✓ No anomaly rules triggered
-                        </span>
-                      )}
+                    {/* Triggered Rules */}
+                    {upiResult.score.rules.length > 0 && (
+                      <div>
+                        <span className="text-[10px] mono opacity-60 uppercase block mb-1">Triggered Security Rules:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {upiResult.score.rules.map((rule) => (
+                            <span key={rule} className="text-[10px] mono px-2 py-0.5 rounded bg-red-950/60 border border-red-500/40 text-red-300 font-semibold">
+                              ⚠️ {rule}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Evidence Points */}
+                    <div className="space-y-1 pt-1 border-t border-[#1f2733]/60">
+                      <span className="text-[10px] mono opacity-60 uppercase block">Engine Security Analysis:</span>
+                      <ul className="text-xs space-y-1 text-slate-300">
+                        {upiResult.score.evidence.map((ev, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <span className={upiResult.score.risk_score >= 0.7 ? "text-red-400" : "text-emerald-400"}>•</span>
+                            <span>{ev}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
 
-                  {/* Evidence Points */}
-                  <div className="bg-[#0f131a] p-3 rounded border border-[#1f2733]/80 space-y-1">
-                    <span className="text-[10px] mono opacity-60 block uppercase">Forensic Evidence Signals</span>
-                    <ul className="text-xs space-y-1 text-slate-300">
-                      {simResult.score.evidence.slice(0, 3).map((ev, idx) => (
-                        <li key={idx} className="flex items-start gap-1.5">
-                          <span className="text-cyan-400 mt-0.5">•</span>
-                          <span>{ev}</span>
-                        </li>
-                      ))}
-                    </ul>
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setUpiResult(null)}
+                      className="flex-1 py-2 px-3 rounded-lg text-center text-xs font-semibold mono bg-[#151c28] hover:bg-[#1f293b] text-slate-300 border border-[#1f2733] transition-all"
+                    >
+                      ↺ New Payment
+                    </button>
+                    <Link
+                      to={`/investigate/${upiResult.transaction.transaction_id}`}
+                      className="flex-1 py-2 px-3 rounded-lg text-center text-xs font-semibold mono bg-[#162030] hover:bg-cyan-900/40 text-cyan-300 border border-cyan-500/40 transition-all"
+                    >
+                      🔍 Forensic View →
+                    </Link>
                   </div>
-
-                  {/* 5-Signal Radar Breakdown */}
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] mono opacity-60 uppercase block">5-Signal Weighted Fusion</span>
-                    <div className="grid grid-cols-2 gap-1.5 text-[10px] mono">
-                      <div className="p-1.5 rounded bg-[#11161f] border border-[#1f2733] flex justify-between">
-                        <span className="opacity-70">🤖 XGBoost (35%)</span>
-                        <span className="font-bold text-cyan-400">{simResult.score.xgb_score !== null ? simResult.score.xgb_score.toFixed(2) : "N/A"}</span>
-                      </div>
-                      <div className="p-1.5 rounded bg-[#11161f] border border-[#1f2733] flex justify-between">
-                        <span className="opacity-70">🌲 Anomaly (20%)</span>
-                        <span className="font-bold text-amber-400">{simResult.score.anomaly_score.toFixed(2)}</span>
-                      </div>
-                      <div className="p-1.5 rounded bg-[#11161f] border border-[#1f2733] flex justify-between">
-                        <span className="opacity-70">⚡ Rules (20%)</span>
-                        <span className="font-bold text-red-400">{simResult.score.rules.length > 0 ? "Flagged" : "Clear"}</span>
-                      </div>
-                      <div className="p-1.5 rounded bg-[#11161f] border border-[#1f2733] flex justify-between">
-                        <span className="opacity-70">👤 Behavior (15%)</span>
-                        <span className="font-bold text-indigo-400">{simResult.score.behavioral_score.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Deep Dive CTA */}
-                  <Link
-                    to={`/investigate/${simResult.transaction.transaction_id}`}
-                    className="w-full py-2 px-3 rounded text-center text-xs font-semibold mono block bg-[#162030] hover:bg-cyan-900/40 text-cyan-300 border border-cyan-500/40 transition-all"
-                  >
-                    🔍 Open Full Forensic Investigation (SHAP + Graph + Copilot) →
-                  </Link>
                 </div>
               ) : (
-                <div className="h-full min-h-[320px] flex flex-col items-center justify-center text-center p-6 space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-2xl">
-                    ⚡
+                <div className="h-full min-h-[320px] flex flex-col items-center justify-center text-center p-6 space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-3xl shadow-inner">
+                    📱
                   </div>
                   <div>
-                    <h3 className="font-semibold text-sm text-white">Awaiting Simulation</h3>
-                    <p className="text-xs opacity-60 mt-1 max-w-xs text-slate-300">
-                      Select a preset above or customize transaction values on the left, then click <strong>"Run Risk Engine Simulation"</strong> to evaluate risk and view live decisioning.
+                    <h3 className="font-bold text-sm text-white">Ready for UPI Payment</h3>
+                    <p className="text-xs opacity-70 mt-1 max-w-xs text-slate-300">
+                      Enter any amount on the left or use the <strong>Quick Test</strong> buttons above to see how FinShield automatically passes ₹50–₹100 micro-payments and blocks high-value transfers in Lakhs.
                     </p>
                   </div>
                 </div>
