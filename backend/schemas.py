@@ -44,6 +44,9 @@ class Transaction(BaseModel):
     device_id: str
     location: str
     velocity: int = 0
+    channel: str = "UPI"
+    gateway: Optional[str] = None
+    raw_payload: Optional[dict] = None
 
 
 class ScoredTransaction(Transaction):

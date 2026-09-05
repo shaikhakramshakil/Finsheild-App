@@ -631,6 +631,31 @@ export function CommandCenter() {
   const [upiProcessing, setUpiProcessing] = useState<boolean>(false);
   const [upiResult, setUpiResult] = useState<Rec | null>(null);
 
+  // Cashfree Webhook Ingestion State
+  const [cfAmount, setCfAmount] = useState<number>(75);
+  const [cfUpiId, setCfUpiId] = useState<string>("rahul@okhdfcbank");
+  const [cfStatus] = useState<string>("SUCCESS");
+  const [cfProcessing, setCfProcessing] = useState<boolean>(false);
+  const [cfResult, setCfResult] = useState<any>(null);
+  const [cfCopied, setCfCopied] = useState<boolean>(false);
+
+  async function handleCashfreeTest(overrideAmt?: number, overrideUpi?: string) {
+    const amt = overrideAmt !== undefined ? overrideAmt : cfAmount;
+    const upi = overrideUpi !== undefined ? overrideUpi : cfUpiId;
+    if (overrideAmt !== undefined) setCfAmount(overrideAmt);
+    if (overrideUpi !== undefined) setCfUpiId(overrideUpi);
+    setCfProcessing(true);
+    try {
+      const res: any = await api.cashfreeSimulate({ amount: amt, status: cfStatus, upi_id: upi });
+      setCfResult(res);
+      await refresh();
+    } catch (e: any) {
+      alert("Cashfree Webhook test failed: " + e.message);
+    } finally {
+      setCfProcessing(false);
+    }
+  }
+
   async function handleUpiPayment(overrideAmount?: number) {
     const amt = overrideAmount !== undefined ? overrideAmount : Number(upiAmount);
     if (overrideAmount !== undefined) {
@@ -837,6 +862,141 @@ export function CommandCenter() {
             )}
           </div>
 
+          {/* Cashfree Payment Gateway Ingestion Hub */}
+          <div className="bg-[#171916] text-[#F2EFE7] rounded-[11px] p-6 border border-[#2B2D2A] space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2B2D2A] pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-[7px] bg-[#00897B] flex items-center justify-center text-white font-bold text-sm">
+                  💳
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-title-strong text-base text-[#F2EFE7]">
+                      Cashfree Payment Gateway — Live Webhook Ingestion Hub
+                    </h2>
+                    <span className="font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#00897B]/20 text-[#26A69A] border border-[#00897B]/40">
+                      LIVE INGESTION
+                    </span>
+                  </div>
+                  <p className="font-mono text-[10px] text-[#7F837B]">
+                    Connect real Cashfree Payment Links & UPI Webhooks directly to FinShield's 5-Signal Fusion Engine
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
+                        ? "http://127.0.0.1:8000/api/webhooks/cashfree"
+                        : `${window.location.origin}/api/webhooks/cashfree`
+                    );
+                    setCfCopied(true);
+                    setTimeout(() => setCfCopied(false), 2000);
+                  }}
+                  className="font-mono text-[10px] font-semibold px-3 py-1.5 rounded-[7px] bg-[#2B2D2A] text-[#F2EFE7] hover:bg-[#3D403C] border border-[#40443E] transition-all flex items-center gap-1.5"
+                >
+                  <span>{cfCopied ? "✓ Webhook URL Copied!" : "📋 Copy Webhook URL"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Webhook Configuration Guide */}
+            <div className="grid md:grid-cols-2 gap-4 text-xs font-mono">
+              <div className="bg-[#212320] p-3.5 rounded-[9px] border border-[#2B2D2A] space-y-2">
+                <div className="text-[#A7AAA3] font-semibold text-[11px] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00897B]"></span>
+                  Cashfree Dashboard Setup Instructions
+                </div>
+                <div className="text-[11px] text-[#7F837B] space-y-1.5">
+                  <p>1. Go to <strong className="text-[#F2EFE7]">Cashfree Dashboard → Developers → Webhooks</strong>.</p>
+                  <p>2. Add Endpoint: <code className="bg-[#171916] px-1.5 py-0.5 rounded text-[#26A69A] border border-[#2B2D2A]">{window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") ? "http://127.0.0.1:8000/api/webhooks/cashfree" : `${window.location.origin}/api/webhooks/cashfree`}</code></p>
+                  <p>3. Select Event: <strong className="text-[#F2EFE7]">PAYMENT_SUCCESS_WEBHOOK</strong>.</p>
+                  <p>4. Trigger a payment link for ₹1 / ₹50 to see it scored live in under 15ms!</p>
+                </div>
+              </div>
+
+              {/* Instant Test Ingestion Widget */}
+              <div className="bg-[#212320] p-3.5 rounded-[9px] border border-[#2B2D2A] space-y-3">
+                <div className="text-[#A7AAA3] font-semibold text-[11px] flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF5B35]"></span>
+                    Simulate Live Cashfree Webhook Ingestion
+                  </span>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => handleCashfreeTest(75, "user@okhdfcbank")}
+                      className="text-[9px] px-2 py-0.5 rounded bg-[#2E7D32]/20 border border-[#2E7D32]/40 text-[#4CAF50] hover:bg-[#2E7D32]/30"
+                    >
+                      ₹75 Safe
+                    </button>
+                    <button
+                      onClick={() => handleCashfreeTest(150000, "crypto_mule@ybl")}
+                      className="text-[9px] px-2 py-0.5 rounded bg-[#C53030]/20 border border-[#C53030]/40 text-[#EF5350] hover:bg-[#C53030]/30"
+                    >
+                      ₹1.5L Fraud Spike
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[9px] text-[#7F837B] block mb-1">Amount (INR)</label>
+                    <input
+                      type="number"
+                      value={cfAmount}
+                      onChange={(e) => setCfAmount(Number(e.target.value))}
+                      className="w-full bg-[#171916] border border-[#3D403C] rounded px-2 py-1 text-xs text-[#F2EFE7] font-mono focus:border-[#00897B] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] text-[#7F837B] block mb-1">Payer UPI ID / Phone</label>
+                    <input
+                      type="text"
+                      value={cfUpiId}
+                      onChange={(e) => setCfUpiId(e.target.value)}
+                      className="w-full bg-[#171916] border border-[#3D403C] rounded px-2 py-1 text-xs text-[#F2EFE7] font-mono focus:border-[#00897B] outline-none"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  disabled={cfProcessing}
+                  onClick={() => handleCashfreeTest()}
+                  className="w-full py-2 px-3 rounded-[7px] bg-[#00897B] hover:bg-[#00796B] text-white font-mono text-xs font-bold tracking-wider uppercase transition-all disabled:opacity-50"
+                >
+                  {cfProcessing ? "Processing Webhook…" : "Ingest & Score Cashfree Webhook ↗"}
+                </button>
+              </div>
+            </div>
+
+            {/* Cashfree Webhook Result Terminal */}
+            {cfResult && (
+              <div className="p-3 rounded-[7px] bg-[#171916] border border-[#2B2D2A] space-y-2 font-mono text-xs">
+                <div className="flex items-center justify-between border-b border-[#2B2D2A] pb-1.5">
+                  <span className="text-[#26A69A] font-bold">
+                    ✓ Webhook Ingested: {cfResult.transaction_id}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Badge level={cfResult.risk_level} />
+                    <Link
+                      to={`/investigate/${cfResult.transaction_id}`}
+                      className="text-[10px] text-[#FF5B35] underline hover:text-[#FF795A]"
+                    >
+                      Investigate ↗
+                    </Link>
+                  </div>
+                </div>
+                <div className="text-[11px] text-[#A7AAA3] flex flex-wrap gap-4">
+                  <span>Score: <strong className="text-white">{cfResult.risk_score.toFixed(3)}</strong></span>
+                  <span>Gateway: <strong className="text-white">Cashfree PG</strong></span>
+                  <span>Decision: <strong className={cfResult.risk_score >= 0.7 ? "text-[#EF5350]" : "text-[#4CAF50]"}>{cfResult.risk_score >= 0.7 ? "BLOCK" : "APPROVE"}</strong></span>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Live Stream & Quick Scenario Generator */}
           <Card className="border-[#D8D4CA]">
             <div className="flex items-center justify-between border-b border-[#E7E4DB] pb-3">
@@ -941,9 +1101,21 @@ export function CommandCenter() {
                   {items.slice(0, 20).map((r) => (
                     <tr key={r.transaction.transaction_id as string} className="border-b border-[#E7E4DB] hover:bg-[#FFFFFF] transition-colors">
                       <td className="py-2.5">
-                        <Link className="text-[#FF5B35] font-semibold hover:underline" to={`/investigate/${r.transaction.transaction_id}`}>
-                          {r.transaction.transaction_id as string}
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link className="text-[#FF5B35] font-semibold hover:underline" to={`/investigate/${r.transaction.transaction_id}`}>
+                            {r.transaction.transaction_id as string}
+                          </Link>
+                          {(String(r.transaction.transaction_id).startsWith("CF-") || r.transaction.gateway === "Cashfree") && (
+                            <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-[#00897B]/20 text-[#00897B] border border-[#00897B]/40">
+                              CASHFREE
+                            </span>
+                          )}
+                          {String(r.transaction.transaction_id).startsWith("UPI-") && (
+                            <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-[#FF5B35]/20 text-[#FF5B35] border border-[#FF5B35]/40">
+                              UPI RAIL
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="font-bold text-[#171916]">₹{Number(r.transaction.amount).toLocaleString("en-IN")}</td>
                       <td className="text-[#555951]">{r.transaction.merchant as string}</td>
@@ -1235,6 +1407,32 @@ export function Investigation() {
                 </div>
                 <div className="pt-2 border-t border-[#E7E4DB]"><span className="text-[#7F837B]">Recommended Action:</span> <span className="font-bold text-[#FF5B35]">{copilot.recommended_action}</span></div>
               </div>
+            )}
+            {/* Raw Gateway Webhook Payload */}
+            {(t.raw_payload || t.gateway === "Cashfree" || String(t.transaction_id).startsWith("CF-")) && (
+              <Card>
+                <div className="font-title-strong text-sm text-[#171916] mb-2 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#00897B]"></span>
+                    Cashfree Gateway — Raw Webhook JSON Payload
+                  </span>
+                  <span className="badge-pill bg-[#00897B]/20 text-[#00897B] font-mono text-[9px]">GATEWAY PAYLOAD</span>
+                </div>
+                <div className="text-xs text-[#7F837B] mb-3">
+                  Original structured event payload received from Cashfree Payment Gateway before 36-feature extraction.
+                </div>
+                <pre className="p-4 rounded-[7px] bg-[#171916] text-[#26A69A] font-mono text-xs overflow-x-auto max-h-[300px]">
+                  {JSON.stringify(t.raw_payload || {
+                    gateway: "Cashfree PG",
+                    transaction_id: t.transaction_id,
+                    amount: t.amount,
+                    customer: t.user_id,
+                    timestamp: t.timestamp,
+                    channel: t.channel || "UPI",
+                    status: "PAYMENT_SUCCESS"
+                  }, null, 2)}
+                </pre>
+              </Card>
             )}
           </Card>
         </main>

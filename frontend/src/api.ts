@@ -221,6 +221,42 @@ async function req(path: string, init?: RequestInit) {
         salt_version: "v2-2026",
       };
     }
+    if (path.startsWith("/api/webhooks/cashfree")) {
+      let body: any = {};
+      try {
+        body = JSON.parse((init?.body as string) || "{}");
+      } catch (e) {}
+      const data = body.data || {};
+      const payment = data.payment || {};
+      const order = data.order || {};
+      const amount = Number(payment.payment_amount || order.order_amount || body.amount || 75.0);
+      const upi_id = payment.payment_method?.upi?.upi_id || body.upi_id || "rahul@okhdfcbank";
+      const cf_id = payment.cf_payment_id || `CF-${Date.now()}`;
+      
+      const txn = {
+        transaction_id: `CF-${cf_id}`,
+        user_id: upi_id,
+        amount: amount,
+        timestamp: new Date().toISOString(),
+        merchant: "Cashfree Payment Rail",
+        merchant_category: "digital_gateway",
+        device_id: amount >= 100000 ? "DEV-NEW-CF" : "DEV-CF-GATEWAY",
+        location: "India (IN)",
+        velocity: amount >= 100000 ? 8 : 1,
+        channel: "UPI",
+        gateway: "Cashfree",
+        raw_payload: body,
+      };
+      const scored = clientScore(txn);
+      return {
+        status: "processed",
+        gateway: "Cashfree",
+        transaction_id: txn.transaction_id,
+        risk_score: scored.score.risk_score,
+        risk_level: scored.score.risk_level,
+        record: scored,
+      };
+    }
     if (path.startsWith("/api/transaction/score")) {
       const body = JSON.parse((init?.body as string) || "{}");
       return clientScore(body);
@@ -243,6 +279,10 @@ export const api = {
   graph: (id: string) => req(`/api/graph/${id}`),
   score: (txn: Record<string, unknown>, scenario?: string) =>
     req(`/api/transaction/score?scenario=${scenario || "normal"}`, { method: "POST", body: JSON.stringify(txn) }),
+  cashfreeWebhook: (payload: object) =>
+    req("/api/webhooks/cashfree", { method: "POST", body: JSON.stringify(payload) }),
+  cashfreeSimulate: (params: { amount: number; status?: string; upi_id?: string }) =>
+    req(`/api/webhooks/cashfree/simulate?amount=${params.amount}&status=${params.status || "SUCCESS"}&upi_id=${encodeURIComponent(params.upi_id || "user@okhdfcbank")}`, { method: "POST" }),
   identity: (uid: string) => req(`/api/identity/${uid}`),
   reset: () => req("/api/demo/reset", { method: "POST" }),
 };
