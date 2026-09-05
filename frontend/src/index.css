@@ -17,11 +17,11 @@
   --color-surface-alt: #E7E4DB;
   --color-on-primary: #FFFFFF;
 
-  --font-display: "Manrope", sans-serif;
-  --font-body: "Manrope", sans-serif;
-  --font-mono: "IBM Plex Mono", monospace;
-  --font-serif: "Cormorant Garamond", serif;
-  --font-alt: "Inter", sans-serif;
+  --font-display: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-serif: "Space Grotesk", sans-serif;
+  --font-alt: "Space Grotesk", sans-serif;
 }
 
 :root {
@@ -44,10 +44,11 @@
 body {
   background-color: #F2EFE7;
   color: #171916;
-  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 /* Tellnova Technical Grid Background */
@@ -67,73 +68,88 @@ body {
   background-size: 36px 36px;
 }
 
-/* Typography Tokens */
+/* Typography Tokens — Engineered for Crisp Fintech Clarity */
 .font-display-hero {
-  font-family: 'Manrope', sans-serif;
-  font-size: clamp(48px, 6vw, 90px);
-  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(48px, 6.5vw, 92px);
+  font-weight: 800;
   line-height: 0.95;
   letter-spacing: -0.04em;
 }
 
 .font-display-sub {
-  font-family: 'Manrope', sans-serif;
-  font-size: clamp(32px, 4vw, 56px);
-  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(32px, 4.5vw, 58px);
+  font-weight: 750;
   line-height: 1.05;
   letter-spacing: -0.035em;
 }
 
+.font-title-strong {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
 .font-title-md {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 20px;
   font-weight: 600;
-  line-height: 1.5;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
 }
 
 .font-quote {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 25px;
-  font-weight: 500;
-  line-height: 1.5;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
 }
 
 .font-nav-link {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
   font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.72px;
+  letter-spacing: 0.85px;
   text-transform: uppercase;
 }
 
 .font-label-caps {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   font-weight: 600;
   line-height: 1;
-  letter-spacing: 1px;
+  letter-spacing: 1.1px;
   text-transform: uppercase;
 }
 
 .font-micro-label {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
   font-weight: 600;
   line-height: 1;
-  letter-spacing: 1.35px;
+  letter-spacing: 1.4px;
   text-transform: uppercase;
 }
 
 .font-body-mono {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
   font-weight: 500;
   line-height: 1.5;
+  font-feature-settings: "tnum" 1, "zero" 1;
 }
 
 .mono {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+code, pre {
+  font-family: 'JetBrains Mono', monospace;
+  font-feature-settings: "tnum" 1, "zero" 1;
 }
 
 /* Tellnova Geometric Accents */
@@ -202,7 +218,7 @@ body {
   color: #FFFFFF;
   border-radius: 11px;
   padding: 12px 24px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   font-weight: 600;
   line-height: 1;
@@ -224,7 +240,7 @@ body {
   border: 1px solid #FF5B35;
   border-radius: 11px;
   padding: 10px 20px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 1px;
@@ -244,7 +260,7 @@ body {
   background-color: #E7E4DB;
   color: #171916;
   border-radius: 9999px;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
   font-weight: 600;
   line-height: 1;

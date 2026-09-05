@@ -1372,8 +1372,8 @@ export function Investigation() {
                             stroke={isSusp ? "#A23C27" : "#62665F"}
                             strokeWidth={1.5}
                           />
-                          <text x={x} y={y + 4} textAnchor="middle" fontSize={10} fontFamily="IBM Plex Mono" fill="#FFFFFF" fontWeight="600">{n.id}</text>
-                          <text x={x} y={y + 14} textAnchor="middle" fontSize={8} fontFamily="IBM Plex Mono" fill={isSusp ? "#FFE5DD" : "#A7AAA3"}>{n.type}</text>
+                          <text x={x} y={y + 4} textAnchor="middle" fontSize={10} fontFamily="JetBrains Mono" fill="#FFFFFF" fontWeight="600">{n.id}</text>
+                          <text x={x} y={y + 14} textAnchor="middle" fontSize={8} fontFamily="JetBrains Mono" fill={isSusp ? "#FFE5DD" : "#A7AAA3"}>{n.type}</text>
                         </g>
                       );
                     })}
