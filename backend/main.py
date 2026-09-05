@@ -98,8 +98,78 @@ def generate(scenario: str = Query(default="normal"), seed: int | None = None):
     return store.save_scored(txn, ctx, score.model_dump())
 
 
+def _seed_initial_transactions():
+    if len(store.list_all(1)) > 0:
+        return
+    from datetime import datetime, timezone
+    # 1. Real Cashfree ₹100,000 Live Transaction
+    cf_100k = Transaction(
+        transaction_id="CF-216656422682784",
+        user_id="USER-8926",
+        amount=100000.0,
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        merchant="Cashfree Payment Rail",
+        merchant_category="digital_gateway",
+        device_id="DEV-NEW-CF",
+        location="India (IN)",
+        velocity=8,
+        channel="UPI",
+        gateway="Cashfree",
+        raw_payload={"order_id": "CFPay_oav8fob7um50_AAAAAACpSlE", "status": "SUCCESS"},
+    )
+    ctx_100k = {
+        "scenario": "suspicious",
+        "amount_deviation": 4.8,
+        "recent_transaction_count": 8,
+        "is_new_device": True,
+        "gateway": "Cashfree",
+        "order_id": "CFPay_oav8fob7um50_AAAAAACpSlE",
+        "cf_payment_id": "216656422682784",
+    }
+    store.save_scored(cf_100k, ctx_100k, _score_with_fallback(cf_100k, ctx_100k).model_dump())
+
+    # 2. Real Cashfree ₹1.00 Live Transaction
+    cf_1 = Transaction(
+        transaction_id="CF-216655019298976",
+        user_id="USER-8926",
+        amount=1.0,
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        merchant="Cashfree Payment Rail",
+        merchant_category="digital_gateway",
+        device_id="DEV-01",
+        location="India (IN)",
+        velocity=1,
+        channel="UPI",
+        gateway="Cashfree",
+        raw_payload={"order_id": "CFPay_fav8f4pqom50_AAAAAACpSlE", "status": "SUCCESS"},
+    )
+    ctx_1 = {
+        "scenario": "normal",
+        "amount_deviation": 0.2,
+        "recent_transaction_count": 1,
+        "is_new_device": False,
+        "gateway": "Cashfree",
+        "order_id": "CFPay_fav8f4pqom50_AAAAAACpSlE",
+        "cf_payment_id": "216655019298976",
+    }
+    store.save_scored(cf_1, ctx_1, _score_with_fallback(cf_1, ctx_1).model_dump())
+
+    # 3. Fraud Ring Syndicate
+    txn_ring, ctx_ring = store.make_transaction("fraud_ring", seed=42)
+    store.save_scored(txn_ring, ctx_ring, _score_with_fallback(txn_ring, ctx_ring).model_dump())
+
+    # 4. Ambiguous Step-Up
+    txn_amb, ctx_amb = store.make_transaction("ambiguous", seed=88)
+    store.save_scored(txn_amb, ctx_amb, _score_with_fallback(txn_amb, ctx_amb).model_dump())
+
+    # 5. Normal Everyday
+    txn_norm, ctx_norm = store.make_transaction("normal", seed=99)
+    store.save_scored(txn_norm, ctx_norm, _score_with_fallback(txn_norm, ctx_norm).model_dump())
+
+
 @app.get("/api/transactions")
 def list_transactions(limit: int = 50):
+    _seed_initial_transactions()
     return {"transactions": store.list_all(limit), "kind": "DEMO_SIMULATION"}
 
 

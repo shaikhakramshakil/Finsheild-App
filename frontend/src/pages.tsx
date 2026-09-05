@@ -1,5 +1,5 @@
 // oxlint-disable
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, type Rec } from "./api";
 
@@ -1168,6 +1168,465 @@ export function CommandCenter() {
 
 export const Dashboard = CommandCenter;
 
+function ForensicEntityGraph({ graph, txnId }: { graph: any; txnId: string }) {
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [filterMode, setFilterMode] = useState<"ALL" | "ANOMALIES">("ALL");
+
+  const nodes: any[] = useMemo(() => graph?.nodes ?? [], [graph]);
+  const rawEdges: any[] = useMemo(() => graph?.edges ?? [], [graph]);
+
+  // Auto-select critical rogue device, or transaction node, or first node
+  useEffect(() => {
+    if (nodes.length > 0 && !selectedNodeId) {
+      const critDev = nodes.find((n: any) => n.risk === "CRITICAL" && n.type === "device");
+      const critNode = nodes.find((n: any) => n.risk === "CRITICAL");
+      const txnNode = nodes.find((n: any) => n.id === txnId || n.type === "transaction");
+      setSelectedNodeId((critDev || critNode || txnNode || nodes[0])?.id);
+    }
+  }, [nodes, txnId, selectedNodeId]);
+
+  // Deterministic 4-Column Layout Coordinates
+  const coords = useMemo(() => {
+    const map: Record<string, { x: number; y: number }> = {};
+    const col0: any[] = []; // Identity & Funding (Users, Accounts)
+    const col1: any[] = []; // Hardware & Origin (Devices)
+    const col2: any[] = []; // Transaction Execution Hub
+    const col3: any[] = []; // Gateway & Counterparty Merchant
+
+    for (const n of nodes) {
+      const id = String(n.id);
+      const type = String(n.type).toLowerCase();
+      if (type === "user" || id.startsWith("user:") || type === "account" || id.startsWith("acct:")) {
+        col0.push(n);
+      } else if (type === "device" || id.startsWith("dev:")) {
+        col1.push(n);
+      } else if (type === "transaction" || id === txnId) {
+        col2.push(n);
+      } else if (type === "gateway" || id.startsWith("gw:") || type === "merchant" || id.startsWith("merch:")) {
+        col3.push(n);
+      } else {
+        col1.push(n);
+      }
+    }
+
+    const assignCol = (arr: any[], x: number) => {
+      const total = arr.length;
+      if (total === 1) {
+        map[arr[0].id] = { x, y: 190 };
+      } else if (total === 2) {
+        map[arr[0].id] = { x, y: 100 };
+        map[arr[1].id] = { x, y: 280 };
+      } else {
+        arr.forEach((item, i) => {
+          const y = 80 + i * (220 / Math.max(1, total - 1));
+          map[item.id] = { x, y };
+        });
+      }
+    };
+
+    assignCol(col0, 115);
+    assignCol(col1, 350);
+    assignCol(col2, 580);
+    assignCol(col3, 810);
+
+    nodes.forEach((n, i) => {
+      if (!map[n.id]) {
+        map[n.id] = { x: 115 + (i % 4) * 230, y: 90 + Math.floor(i / 4) * 110 };
+      }
+    });
+
+    return map;
+  }, [nodes, txnId]);
+
+  const edges = useMemo(() => {
+    if (filterMode === "ANOMALIES") {
+      return rawEdges.filter((e: any) => e.is_suspicious);
+    }
+    return rawEdges;
+  }, [rawEdges, filterMode]);
+
+  const selectedNode = useMemo(() => {
+    return nodes.find((n: any) => n.id === selectedNodeId) || nodes[0] || null;
+  }, [nodes, selectedNodeId]);
+
+  if (!graph || nodes.length === 0) {
+    return (
+      <div className="rounded-[11px] border border-[#D8D4CA] bg-[#FFFFFF] p-8 text-center text-xs font-mono text-[#7F837B]">
+        No entity graph topology mapped for this transaction.
+      </div>
+    );
+  }
+
+  const getIcon = (type: string, risk?: string) => {
+    if (risk === "CRITICAL") return "⚡";
+    switch (String(type).toLowerCase()) {
+      case "user": return "👤";
+      case "account": return "💳";
+      case "device": return "📱";
+      case "transaction": return "⚡";
+      case "gateway": return "🔄";
+      case "merchant": return "🏢";
+      default: return "🔷";
+    }
+  };
+
+  const CARD_W = 154;
+  const CARD_H = 54;
+  const HALF_W = CARD_W / 2; // 77
+
+  return (
+    <div className="space-y-4">
+      {/* Forensic Graph Canvas Container */}
+      <div className="rounded-[14px] border border-[#2B2D2A] bg-[#121412] p-4 shadow-xl overflow-hidden relative">
+        {/* Top Header Bar inside Canvas */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#252823] mb-3 text-xs font-mono">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#FF5B35] animate-pulse" />
+            <span className="text-[#F2EFE7] font-semibold tracking-wide">Multi-Hop Entity Resolution Canvas</span>
+            <span className="px-2 py-0.5 rounded bg-[#1C1F1B] border border-[#3E443B] text-[10px] text-[#A7AAA3]">
+              {graph.summary?.topology_type || "Graph Forensics"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setFilterMode(filterMode === "ALL" ? "ANOMALIES" : "ALL")}
+              className={`px-2.5 py-1 rounded text-[10px] font-mono uppercase tracking-wider transition-all border ${
+                filterMode === "ANOMALIES"
+                  ? "bg-[#FF5B35]/20 border-[#FF5B35] text-[#FF5B35] font-bold shadow-[0_0_12px_rgba(255,91,53,0.3)]"
+                  : "bg-[#1C1F1B] border-[#3E443B] text-[#A7AAA3] hover:text-white"
+              }`}
+            >
+              {filterMode === "ANOMALIES" ? "▲ Anomalous Paths Only" : "● All Graph Paths"}
+            </button>
+          </div>
+        </div>
+
+        {/* SVG Drawing Canvas */}
+        <div className="overflow-x-auto">
+          <svg viewBox="0 0 940 380" className="w-full h-auto min-w-[720px] max-h-[420px] select-none">
+            <defs>
+              <pattern id="forensic-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1" fill="#252923" />
+              </pattern>
+              <marker id="arr-normal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 1 L 9 5 L 0 9 z" fill="#62665F" />
+              </marker>
+              <marker id="arr-alert" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 1 L 9 5 L 0 9 z" fill="#FF5B35" />
+              </marker>
+              <filter id="glow-danger" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#FF5B35" floodOpacity="0.6" />
+              </filter>
+            </defs>
+
+            {/* Grid Pattern Background */}
+            <rect width="940" height="380" fill="url(#forensic-grid)" rx="8" />
+
+            {/* Edges with Bézier Curves */}
+            {edges.map((e: any, idx: number) => {
+              const c1 = coords[e.from];
+              const c2 = coords[e.to];
+              if (!c1 || !c2) return null;
+
+              const isSusp = !!e.is_suspicious;
+              const isVertical = Math.abs(c1.x - c2.x) < 30;
+
+              let d = "";
+              let midX = (c1.x + c2.x) / 2;
+              let midY = (c1.y + c2.y) / 2;
+
+              if (c2.x > c1.x) {
+                const x1 = c1.x + HALF_W;
+                const y1 = c1.y;
+                const x2 = c2.x - HALF_W;
+                const y2 = c2.y;
+                const dx = x2 - x1;
+                d = `M ${x1} ${y1} C ${x1 + dx * 0.45} ${y1}, ${x2 - dx * 0.45} ${y2}, ${x2} ${y2}`;
+                midX = (x1 + x2) / 2;
+                midY = (y1 + y2) / 2;
+              } else if (isVertical) {
+                const dir = c1.x < 450 ? -1 : 1;
+                const x1 = c1.x + dir * HALF_W;
+                const y1 = c1.y;
+                const x2 = c2.x + dir * HALF_W;
+                const y2 = c2.y;
+                const arcX = c1.x + dir * (HALF_W + 36);
+                d = `M ${x1} ${y1} C ${arcX} ${y1}, ${arcX} ${y2}, ${x2} ${y2}`;
+                midX = arcX;
+                midY = (y1 + y2) / 2;
+              } else {
+                const x1 = c1.x - HALF_W;
+                const y1 = c1.y;
+                const x2 = c2.x + HALF_W;
+                const y2 = c2.y;
+                const dx = x1 - x2;
+                d = `M ${x1} ${y1} C ${x1 - dx * 0.45} ${y1}, ${x2 + dx * 0.45} ${y2}, ${x2} ${y2}`;
+                midX = (x1 + x2) / 2;
+                midY = (y1 + y2) / 2;
+              }
+
+              return (
+                <g key={`edge-${idx}`}>
+                  <path
+                    d={d}
+                    fill="none"
+                    stroke={isSusp ? "#FF5B35" : "#4D5248"}
+                    strokeWidth={isSusp ? 2.2 : 1.5}
+                    strokeDasharray={isSusp ? "6,4" : undefined}
+                    markerEnd={isSusp ? "url(#arr-alert)" : "url(#arr-normal)"}
+                    filter={isSusp ? "url(#glow-danger)" : undefined}
+                    className="transition-all duration-300"
+                  />
+                  {e.label && (
+                    <g transform={`translate(${midX}, ${midY})`}>
+                      <rect
+                        x={-44}
+                        y={-9}
+                        width={88}
+                        height={18}
+                        rx={4}
+                        fill="#171916"
+                        stroke={isSusp ? "#FF5B35" : "#383C35"}
+                        strokeWidth={1}
+                      />
+                      <text
+                        x={0}
+                        y={3.5}
+                        textAnchor="middle"
+                        fontSize={7.5}
+                        fontFamily="JetBrains Mono"
+                        fontWeight="600"
+                        fill={isSusp ? "#FF8466" : "#A7AAA3"}
+                        letterSpacing="0.4px"
+                      >
+                        {e.label}
+                      </text>
+                    </g>
+                  )}
+                </g>
+              );
+            })}
+
+            {/* Nodes */}
+            {nodes.map((n: any) => {
+              const pt = coords[n.id] || { x: 100, y: 100 };
+              const isSelected = selectedNodeId === n.id;
+              const isCrit = n.risk === "CRITICAL";
+              const isSusp = n.risk === "SUSPICIOUS";
+              const isSafe = n.risk === "SAFE";
+              const isGw = n.type === "gateway";
+              const isTxn = n.id === txnId || n.type === "transaction";
+
+              const strokeColor = isCrit
+                ? "#FF5B35"
+                : isSusp
+                ? "#F59E0B"
+                : isTxn
+                ? "#FF5B35"
+                : isGw
+                ? "#38BDF8"
+                : isSafe
+                ? "#22C55E"
+                : "#454B41";
+
+              const fillColor = isCrit
+                ? "#251412"
+                : isSusp
+                ? "#251C13"
+                : isTxn
+                ? "#221714"
+                : isGw
+                ? "#131E24"
+                : "#1A1D1A";
+
+              const label = String(n.label || n.id);
+              const displayLabel = label.length > 18 ? label.slice(0, 16) + "…" : label;
+
+              return (
+                <g
+                  key={n.id}
+                  transform={`translate(${pt.x}, ${pt.y})`}
+                  onClick={() => setSelectedNodeId(n.id)}
+                  className="cursor-pointer group"
+                >
+                  {/* Selection / Pulse Halo */}
+                  {isSelected && (
+                    <rect
+                      x={-HALF_W - 4}
+                      y={-CARD_H / 2 - 4}
+                      width={CARD_W + 8}
+                      height={CARD_H + 8}
+                      rx={12}
+                      fill="none"
+                      stroke={strokeColor}
+                      strokeWidth={1.8}
+                      strokeDasharray="4,4"
+                      className="animate-spin"
+                      style={{ animationDuration: "12s" }}
+                    />
+                  )}
+
+                  {/* Card Background */}
+                  <rect
+                    x={-HALF_W}
+                    y={-CARD_H / 2}
+                    width={CARD_W}
+                    height={CARD_H}
+                    rx={9}
+                    fill={fillColor}
+                    stroke={strokeColor}
+                    strokeWidth={isSelected ? 2 : 1.4}
+                    filter={isCrit || isTxn ? "url(#glow-danger)" : undefined}
+                    className="transition-all duration-150 group-hover:brightness-125"
+                  />
+
+                  {/* Icon Badge */}
+                  <text x={-HALF_W + 12} y={-4} fontSize={13} textAnchor="start">
+                    {getIcon(n.type, n.risk)}
+                  </text>
+
+                  {/* Role / Category Header */}
+                  <text
+                    x={-HALF_W + 30}
+                    y={-10}
+                    fontSize={8}
+                    fontFamily="JetBrains Mono"
+                    fontWeight="700"
+                    fill={isCrit ? "#FF8466" : isSusp ? "#FBBF24" : "#8E938A"}
+                    letterSpacing="0.8px"
+                  >
+                    {String(n.role || n.type || "ENTITY").slice(0, 18).toUpperCase()}
+                  </text>
+
+                  {/* Entity Primary Label */}
+                  <text
+                    x={-HALF_W + 30}
+                    y={5}
+                    fontSize={10.5}
+                    fontFamily="JetBrains Mono"
+                    fontWeight="700"
+                    fill="#FFFFFF"
+                  >
+                    {displayLabel}
+                  </text>
+
+                  {/* Risk Chip on Bottom Right */}
+                  <g transform={`translate(${HALF_W - 44}, ${CARD_H / 2 - 14})`}>
+                    <rect
+                      x={0}
+                      y={0}
+                      width={38}
+                      height={11}
+                      rx={3}
+                      fill={isCrit ? "rgba(255,91,53,0.25)" : isSusp ? "rgba(245,158,11,0.25)" : "rgba(34,197,94,0.15)"}
+                      stroke={strokeColor}
+                      strokeWidth={0.8}
+                    />
+                    <text
+                      x={19}
+                      y={8}
+                      textAnchor="middle"
+                      fontSize={6.5}
+                      fontFamily="JetBrains Mono"
+                      fontWeight="700"
+                      fill={isCrit ? "#FF8466" : isSusp ? "#FBBF24" : "#4ADE80"}
+                    >
+                      {n.risk || "SAFE"}
+                    </text>
+                  </g>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+
+        {/* Canvas Bottom Legend Bar */}
+        <div className="mt-3 pt-3 border-t border-[#252823] flex flex-wrap items-center justify-between gap-3 text-[10.5px] font-mono text-[#8E938A]">
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="flex items-center gap-1.5"><span className="text-xs">👤</span> Identity Payer</span>
+            <span className="flex items-center gap-1.5"><span className="text-xs">💳</span> Funding Account</span>
+            <span className="flex items-center gap-1.5"><span className="text-xs">📱</span> Hardware Fingerprint</span>
+            <span className="flex items-center gap-1.5"><span className="text-xs">⚡</span> Ingress Hub</span>
+            <span className="flex items-center gap-1.5"><span className="text-xs">🔄</span> Gateway Switch</span>
+            <span className="flex items-center gap-1.5"><span className="text-xs">🏢</span> Settlement Escrow</span>
+            <span className="flex items-center gap-1.5 text-[#FF5B35]">
+              <span className="w-3 border-b-2 border-dashed border-[#FF5B35] inline-block mr-0.5" /> Rogue / Anomaly Link
+            </span>
+          </div>
+          <div className="text-[10px] text-[#A7AAA3] uppercase tracking-wider">
+            Click any node to inspect forensics
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Entity Forensic Inspector Drawer */}
+      {selectedNode && (
+        <div className="rounded-[12px] border border-[#2B2D2A] bg-[#171916] text-[#F2EFE7] p-4 shadow-md space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-2.5 border-b border-[#2B2D2A]">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">{getIcon(selectedNode.type, selectedNode.risk)}</span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-sm font-bold text-white tracking-wide">
+                    {selectedNode.label || selectedNode.id}
+                  </span>
+                  <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded bg-[#252923] border border-[#3E443B] text-[#A7AAA3]">
+                    {selectedNode.type}
+                  </span>
+                </div>
+                <div className="font-mono text-xs text-[#8E938A]">{selectedNode.role || "Graph Entity"}</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span
+                className={`font-mono text-[10px] font-bold uppercase px-2.5 py-1 rounded border ${
+                  selectedNode.risk === "CRITICAL"
+                    ? "bg-[#FF5B35]/20 text-[#FF5B35] border-[#FF5B35]/50"
+                    : selectedNode.risk === "SUSPICIOUS"
+                    ? "bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/50"
+                    : selectedNode.risk === "SAFE"
+                    ? "bg-[#22C55E]/15 text-[#4ADE80] border-[#22C55E]/40"
+                    : "bg-[#38BDF8]/15 text-[#38BDF8] border-[#38BDF8]/40"
+                }`}
+              >
+                Risk Status: {selectedNode.risk || "NEUTRAL"}
+              </span>
+            </div>
+          </div>
+
+          {/* Forensic Key-Value Attributes Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+            {selectedNode.details ? (
+              Object.entries(selectedNode.details).map(([k, v]: [string, any]) => (
+                <div key={k} className="bg-[#1F221E] p-2.5 rounded-[8px] border border-[#2B2D2A]">
+                  <div className="text-[9px] uppercase tracking-wider text-[#7F837B] mb-1">{k.replace(/_/g, " ")}</div>
+                  <div className="text-[11px] text-[#FFFFFF] font-medium truncate" title={String(v)}>
+                    {typeof v === "boolean" ? (v ? "YES" : "NO") : Array.isArray(v) ? v.join(", ") : String(v)}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-4 text-[#7F837B] text-[11px]">
+                Standard entity topology mapped from transaction ingress rail.
+              </div>
+            )}
+          </div>
+
+          {/* Graph Note Annotation */}
+          {graph.note && (
+            <div className="pt-2 text-[11px] font-mono text-[#A7AAA3] border-t border-[#252823] flex items-center gap-2">
+              <span className="text-[#FF5B35]">●</span>
+              <span>{graph.note}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Investigation() {
   const { id } = useParams();
   const nav = useNavigate();
@@ -1347,51 +1806,7 @@ export function Investigation() {
               <span>Entity Relational Graph — {graph?.kind === "DEMO_SIMULATION" ? "SIMULATION" : "LIVE"}</span>
               <span className="font-mono text-[10px] text-[#7F837B] uppercase">Device & Account Sharing Clusters</span>
             </div>
-            {graph ? (
-              <div className="space-y-3">
-                <div className="rounded-[11px] border border-[#D8D4CA] bg-[#FFFFFF] p-4">
-                  <svg viewBox="0 0 600 220" className="w-full h-[220px]">
-                    <defs>
-                      <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#7F837B" />
-                      </marker>
-                    </defs>
-                    {(graph.nodes ?? []).map((n: any, i: number) => {
-                      const x = 80 + (i % 3) * 200;
-                      const y = 40 + Math.floor(i / 3) * 90;
-                      const isSusp = String(n.id).includes("X") || String(n.id).includes("ring") || String(n.id).includes("SHARED");
-                      return (
-                        <g key={n.id}>
-                          <rect
-                            x={x - 50}
-                            y={y - 16}
-                            width={100}
-                            height={32}
-                            rx={7}
-                            fill={isSusp ? "#FF5B35" : "#171916"}
-                            stroke={isSusp ? "#A23C27" : "#62665F"}
-                            strokeWidth={1.5}
-                          />
-                          <text x={x} y={y + 4} textAnchor="middle" fontSize={10} fontFamily="JetBrains Mono" fill="#FFFFFF" fontWeight="600">{n.id}</text>
-                          <text x={x} y={y + 14} textAnchor="middle" fontSize={8} fontFamily="JetBrains Mono" fill={isSusp ? "#FFE5DD" : "#A7AAA3"}>{n.type}</text>
-                        </g>
-                      );
-                    })}
-                    {(graph.edges ?? []).map((e: any, i: number) => {
-                      const nodes: any[] = graph.nodes ?? [];
-                      const a = nodes.find((n: any) => n.id === e.from);
-                      const b = nodes.find((n: any) => n.id === e.to);
-                      if (!a || !b) return null;
-                      const ai = nodes.indexOf(a), bi = nodes.indexOf(b);
-                      const ax = 80 + (ai % 3) * 200, ay = 40 + Math.floor(ai / 3) * 90;
-                      const bx = 80 + (bi % 3) * 200, by = 40 + Math.floor(bi / 3) * 90;
-                      return <line key={i} x1={ax} y1={ay} x2={bx} y2={by} stroke="#92978E" strokeWidth={1.5} markerEnd="url(#arr)" />;
-                    })}
-                  </svg>
-                </div>
-                <div className="font-mono text-xs text-[#7F837B]">{graph.note ?? ""}</div>
-              </div>
-            ) : <div className="text-xs text-[#7F837B]">No entity graph topology mapped for this transaction.</div>}
+            <ForensicEntityGraph graph={graph} txnId={t.transaction_id} />
           </Card>
 
           {/* Investigation Copilot */}
