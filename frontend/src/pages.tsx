@@ -638,6 +638,8 @@ export function CommandCenter() {
   const [cfProcessing, setCfProcessing] = useState<boolean>(false);
   const [cfResult, setCfResult] = useState<any>(null);
   const [cfCopied, setCfCopied] = useState<boolean>(false);
+  const [studioTab, setStudioTab] = useState<"cashfree" | "upi" | "stream">("cashfree");
+  const [showSteps, setShowSteps] = useState<boolean>(false);
 
   async function handleCashfreeTest(overrideAmt?: number, overrideUpi?: string) {
     const amt = overrideAmt !== undefined ? overrideAmt : cfAmount;
@@ -744,285 +746,312 @@ export function CommandCenter() {
             </div>
           </div>
 
-          {/* 10-Step Judge Flow */}
-          <Card className="border-[#D8D4CA]">
-            <div className="flex items-center justify-between gap-2 border-b border-[#E7E4DB] pb-3">
-              <div className="font-title-strong text-sm text-[#171916] flex items-center gap-2">
+          {/* Guided Evaluator Flow — Collapsible */}
+          <Card className="border-[#D8D4CA] p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-title-strong text-xs text-[#171916] flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#FF5B35]"></span>
-                DEMO MODE — 10-Step Evaluator Flow
+                <span>Guided Evaluator Flow</span>
+                <span className="font-mono text-[10px] text-[#7F837B]">• Step {demoStep + 1} of 10</span>
               </div>
-              <span className="font-mono text-xs text-[#7F837B]">Step {demoStep + 1} of 10</span>
+              <button
+                onClick={() => setShowSteps(!showSteps)}
+                className="font-mono text-[10px] text-[#555951] hover:text-[#FF5B35] font-semibold flex items-center gap-1 transition-colors"
+              >
+                {showSteps ? "▲ Hide Guide" : "▼ Show 10-Step Guide"}
+              </button>
             </div>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {DEMO_STEPS.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    setDemoStep(i);
-                    if (s.path) nav(s.path);
-                    else if (s.action) doDemoAction(s.action);
-                  }}
-                  className={`font-mono text-[10px] font-semibold tracking-wider uppercase px-3 py-1.5 rounded-[7px] border transition-all ${
-                    i === demoStep
-                      ? "bg-[#FF5B35] border-[#FF5B35] text-white shadow-sm"
-                      : "bg-[#FFFFFF] border-[#D8D4CA] text-[#555951] hover:text-[#171916] hover:border-[#62665F]"
-                  }`}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
+            {showSteps && (
+              <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-[#E7E4DB]">
+                {DEMO_STEPS.map((s, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setDemoStep(i);
+                      if (s.path) nav(s.path);
+                      else if (s.action) doDemoAction(s.action);
+                    }}
+                    className={`font-mono text-[10px] font-semibold tracking-wider uppercase px-2.5 py-1 rounded-[6px] border transition-all ${
+                      i === demoStep
+                        ? "bg-[#FF5B35] border-[#FF5B35] text-white shadow-sm"
+                        : "bg-[#FFFFFF] border-[#D8D4CA] text-[#555951] hover:text-[#171916] hover:border-[#62665F]"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </Card>
 
           {/* Metrics KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {[
               ["System", health?.status ?? "…", health?.status === "ok" ? "bg-[#1B5E20]" : "bg-[#B7791F]"],
               ["Model adapter", health?.adapter ?? "…", health?.adapter === "real" ? "bg-[#1B5E20]" : "bg-[#B7791F]"],
               ["Transactions", String(items.length), "bg-[#FF5B35]"],
               ["High-risk alerts", String(alerts.length), alerts.length ? "bg-[#C53030]" : "bg-[#92978E]"],
-              ["Critical", String(critical.length), critical.length ? "bg-[#FF5B35]" : "bg-[#92978E]"],
+              ["Critical blocked", String(critical.length), critical.length ? "bg-[#FF5B35]" : "bg-[#92978E]"],
             ].map(([k, v, dot]) => (
-              <Card key={k} className="p-4">
-                <div className="flex items-center gap-2 font-mono text-[10px] uppercase text-[#7F837B]">
-                  <span className={`w-2 h-2 rounded-full ${dot}`} />
+              <Card key={k} className="p-3.5">
+                <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase text-[#7F837B]">
+                  <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
                   {k}
                 </div>
-                <div className="text-2xl font-bold font-mono text-[#171916] mt-2">{v}</div>
+                <div className="text-xl font-bold font-mono text-[#171916] mt-1">{v}</div>
               </Card>
             ))}
           </div>
 
-          {/* UPI Instant Payment Simulator Studio */}
-          <div className="tellnova-terminal p-6 space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2B2D2A] pb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-[7px] bg-[#FF5B35] flex items-center justify-center text-white font-bold text-sm">
-                  ⚡
+          {/* Unified Transaction Ingestion & Testing Studio (3 Tabs) */}
+          <div className="bg-[#171916] text-[#F2EFE7] rounded-[11px] p-5 border border-[#2B2D2A] space-y-4 shadow-sm">
+            {/* Studio Header & Tab Switcher */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#2B2D2A] pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-[6px] bg-[#FF5B35] flex items-center justify-center text-white font-bold text-xs">
+                  {studioTab === "cashfree" ? "💳" : studioTab === "upi" ? "⚡" : "🌊"}
                 </div>
                 <div>
-                  <h2 className="font-title-strong text-base text-[#F2EFE7]">
-                    Interactive UPI Instant Payment Testing Studio
+                  <h2 className="font-title-strong text-sm text-[#F2EFE7]">
+                    Transaction Ingestion & Testing Studio
                   </h2>
-                  <p className="font-mono text-[10px] text-[#7F837B]">
-                    Manual test: ₹50–₹100 auto-approve • ≥₹1,00,000 trigger anomaly security block
+                  <p className="font-mono text-[9px] text-[#7F837B]">
+                    {studioTab === "cashfree" && "Live Cashfree Webhook Ingestion • Real Gateway Events"}
+                    {studioTab === "upi" && "Interactive UPI Simulator • ₹50 Safe vs ₹1L Block"}
+                    {studioTab === "stream" && "Automated Continuous Traffic & Scenarios"}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
-                <button onClick={() => handleUpiPayment(50)} className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-[7px] bg-[#2E7D32]/20 border border-[#2E7D32]/50 text-[#4CAF50] hover:bg-[#2E7D32]/30">☕ ₹50 Safe</button>
-                <button onClick={() => handleUpiPayment(100)} className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-[7px] bg-[#2E7D32]/20 border border-[#2E7D32]/50 text-[#4CAF50] hover:bg-[#2E7D32]/30">🍕 ₹100 Safe</button>
-                <button onClick={() => handleUpiPayment(100000)} className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-[7px] bg-[#FF5B35]/20 border border-[#FF5B35]/50 text-[#FF5B35] hover:bg-[#FF5B35]/30">🚨 ₹1,00,000 Block</button>
-                <button onClick={() => handleUpiPayment(250000)} className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-[7px] bg-[#C53030]/20 border border-[#C53030]/50 text-[#EF5350] hover:bg-[#C53030]/30">🛑 ₹2,50,000 Block</button>
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-4 gap-4">
-              <div>
-                <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">From (Payer UPI)</label>
-                <input type="text" value={upiSender} onChange={(e) => setUpiSender(e.target.value)} className="w-full rounded-[7px] px-3 py-2 text-xs font-mono outline-none" />
-              </div>
-              <div>
-                <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">To (Payee / Merchant)</label>
-                <input type="text" value={upiReceiver} onChange={(e) => setUpiReceiver(e.target.value)} className="w-full rounded-[7px] px-3 py-2 text-xs font-mono outline-none" />
-              </div>
-              <div>
-                <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">Amount (₹ INR)</label>
-                <input type="number" value={upiAmount} onChange={(e) => setUpiAmount(Number(e.target.value))} className="w-full rounded-[7px] px-3 py-2 text-xs font-mono font-bold outline-none" />
-              </div>
-              <div>
-                <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">Transfer Note</label>
-                <input type="text" value={upiNote} onChange={(e) => setUpiNote(e.target.value)} className="w-full rounded-[7px] px-3 py-2 text-xs font-mono outline-none" />
-              </div>
-            </div>
-
-            <button onClick={() => handleUpiPayment()} disabled={upiProcessing} className="btn-primary w-full py-3 text-xs font-bold tracking-wider">
-              {upiProcessing ? "Evaluating Multi-Signal Graph…" : `PAY ₹${Number(upiAmount).toLocaleString("en-IN")} VIA UPI ↗`}
-            </button>
-
-            {upiResult && (
-              <div className="p-4 rounded-[11px] bg-[#222521] border border-[#383B36] flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">{upiResult.score.risk_score >= 0.7 ? "🚨" : "✅"}</span>
-                    <span className={`font-mono text-xs font-bold ${upiResult.score.risk_score >= 0.7 ? "text-[#FF5B35]" : "text-[#4CAF50]"}`}>
-                      {upiResult.score.risk_score >= 0.7 ? "PAYMENT BLOCKED — FLAGGED AS NOT SAFE" : "PAYMENT APPROVED & VERIFIED SAFE"}
-                    </span>
-                    <Badge level={upiResult.score.risk_level} />
-                  </div>
-                  <div className="font-mono text-[11px] text-[#A7AAA3] mt-1">
-                    ₹{Number(upiResult.transaction.amount).toLocaleString("en-IN")} • Risk Score: {(upiResult.score.risk_score * 100).toFixed(1)}/100 • Rules: {upiResult.score.rules.join(", ") || "None"}
-                  </div>
-                </div>
-                <Link to={`/investigate/${upiResult.transaction.transaction_id}`} className="btn-secondary py-1.5 px-3 text-[10px]">
-                  Inspect Forensics →
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Cashfree Payment Gateway Ingestion Hub */}
-          <div className="bg-[#171916] text-[#F2EFE7] rounded-[11px] p-6 border border-[#2B2D2A] space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#2B2D2A] pb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-[7px] bg-[#00897B] flex items-center justify-center text-white font-bold text-sm">
-                  💳
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-title-strong text-base text-[#F2EFE7]">
-                      Cashfree Payment Gateway — Live Webhook Ingestion Hub
-                    </h2>
-                    <span className="font-mono text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#00897B]/20 text-[#26A69A] border border-[#00897B]/40">
-                      LIVE INGESTION
-                    </span>
-                  </div>
-                  <p className="font-mono text-[10px] text-[#7F837B]">
-                    Connect real Cashfree Payment Links & UPI Webhooks directly to FinShield's 5-Signal Fusion Engine
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
+              {/* Mode Tabs */}
+              <div className="flex items-center gap-1 bg-[#212320] p-1 rounded-[8px] border border-[#2B2D2A]">
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
-                        ? "http://127.0.0.1:8000/api/webhooks/cashfree"
-                        : `${window.location.origin}/api/webhooks/cashfree`
-                    );
-                    setCfCopied(true);
-                    setTimeout(() => setCfCopied(false), 2000);
-                  }}
-                  className="font-mono text-[10px] font-semibold px-3 py-1.5 rounded-[7px] bg-[#2B2D2A] text-[#F2EFE7] hover:bg-[#3D403C] border border-[#40443E] transition-all flex items-center gap-1.5"
+                  onClick={() => setStudioTab("cashfree")}
+                  className={`font-mono text-[10px] font-semibold px-3 py-1.5 rounded-[6px] transition-all flex items-center gap-1.5 ${
+                    studioTab === "cashfree"
+                      ? "bg-[#00897B] text-white shadow-sm"
+                      : "text-[#A7AAA3] hover:text-[#F2EFE7]"
+                  }`}
                 >
-                  <span>{cfCopied ? "✓ Webhook URL Copied!" : "📋 Copy Webhook URL"}</span>
+                  <span>💳 Cashfree Gateway</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#26A69A] animate-pulse" />
+                </button>
+                <button
+                  onClick={() => setStudioTab("upi")}
+                  className={`font-mono text-[10px] font-semibold px-3 py-1.5 rounded-[6px] transition-all ${
+                    studioTab === "upi"
+                      ? "bg-[#FF5B35] text-white shadow-sm"
+                      : "text-[#A7AAA3] hover:text-[#F2EFE7]"
+                  }`}
+                >
+                  ⚡ UPI Instant Rail
+                </button>
+                <button
+                  onClick={() => setStudioTab("stream")}
+                  className={`font-mono text-[10px] font-semibold px-3 py-1.5 rounded-[6px] transition-all ${
+                    studioTab === "stream"
+                      ? "bg-[#3D403C] text-white shadow-sm"
+                      : "text-[#A7AAA3] hover:text-[#F2EFE7]"
+                  }`}
+                >
+                  🌊 Traffic Stream
                 </button>
               </div>
             </div>
 
-            {/* Webhook Configuration Guide */}
-            <div className="grid md:grid-cols-2 gap-4 text-xs font-mono">
-              <div className="bg-[#212320] p-3.5 rounded-[9px] border border-[#2B2D2A] space-y-2">
-                <div className="text-[#A7AAA3] font-semibold text-[11px] flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#00897B]"></span>
-                  Cashfree Dashboard Setup Instructions
+            {/* TAB 1: CASHFREE GATEWAY */}
+            {studioTab === "cashfree" && (
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  {/* Webhook Configuration & URL */}
+                  <div className="bg-[#212320] p-3.5 rounded-[9px] border border-[#2B2D2A] space-y-2.5 font-mono text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#A7AAA3] font-semibold text-[11px] flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#00897B]"></span>
+                        Live Webhook Endpoint URL
+                      </span>
+                      <button
+                        onClick={() => {
+                          const url = window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
+                            ? "https://anaheim-resistant-follow-insulation.trycloudflare.com/api/webhooks/cashfree"
+                            : `${window.location.origin}/api/webhooks/cashfree`;
+                          navigator.clipboard.writeText(url);
+                          setCfCopied(true);
+                          setTimeout(() => setCfCopied(false), 2000);
+                        }}
+                        className="text-[9px] px-2 py-0.5 rounded bg-[#2B2D2A] text-[#F2EFE7] hover:bg-[#3D403C] border border-[#40443E] transition-all"
+                      >
+                        {cfCopied ? "✓ Copied!" : "📋 Copy URL"}
+                      </button>
+                    </div>
+                    <code className="block bg-[#171916] p-2 rounded text-[10px] text-[#26A69A] border border-[#2B2D2A] break-all select-all">
+                      {window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
+                        ? "https://anaheim-resistant-follow-insulation.trycloudflare.com/api/webhooks/cashfree"
+                        : `${window.location.origin}/api/webhooks/cashfree`}
+                    </code>
+                    <div className="text-[10px] text-[#7F837B] space-y-1">
+                      <p>• Added in Cashfree Dashboard → Developers → Webhooks</p>
+                      <p>• Catches <strong className="text-[#F2EFE7]">PAYMENT_SUCCESS_WEBHOOK</strong> live</p>
+                    </div>
+                  </div>
+
+                  {/* Instant Ingestion Test Box */}
+                  <div className="bg-[#212320] p-3.5 rounded-[9px] border border-[#2B2D2A] space-y-2.5 font-mono text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#A7AAA3] font-semibold text-[11px]">Instant Payload Ingestion</span>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleCashfreeTest(75, "user@okhdfcbank")}
+                          className="text-[9px] px-2 py-0.5 rounded bg-[#2E7D32]/20 border border-[#2E7D32]/40 text-[#4CAF50] hover:bg-[#2E7D32]/30"
+                        >
+                          ₹75 Safe
+                        </button>
+                        <button
+                          onClick={() => handleCashfreeTest(100000, "crypto_mule@ybl")}
+                          className="text-[9px] px-2 py-0.5 rounded bg-[#C53030]/20 border border-[#C53030]/40 text-[#EF5350] hover:bg-[#C53030]/30"
+                        >
+                          ₹1L Spike
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[9px] text-[#7F837B] block mb-0.5">Amount (INR)</label>
+                        <input
+                          type="number"
+                          value={cfAmount}
+                          onChange={(e) => setCfAmount(Number(e.target.value))}
+                          className="w-full bg-[#171916] border border-[#3D403C] rounded px-2 py-1 text-xs text-[#F2EFE7] font-mono outline-none focus:border-[#00897B]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] text-[#7F837B] block mb-0.5">Payer UPI ID</label>
+                        <input
+                          type="text"
+                          value={cfUpiId}
+                          onChange={(e) => setCfUpiId(e.target.value)}
+                          className="w-full bg-[#171916] border border-[#3D403C] rounded px-2 py-1 text-xs text-[#F2EFE7] font-mono outline-none focus:border-[#00897B]"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      disabled={cfProcessing}
+                      onClick={() => handleCashfreeTest()}
+                      className="w-full py-1.5 px-3 rounded-[6px] bg-[#00897B] hover:bg-[#00796B] text-white font-mono text-xs font-bold tracking-wider uppercase transition-all disabled:opacity-50"
+                    >
+                      {cfProcessing ? "Scoring Webhook…" : "Ingest & Score Cashfree Webhook ↗"}
+                    </button>
+                  </div>
                 </div>
-                <div className="text-[11px] text-[#7F837B] space-y-1.5">
-                  <p>1. Go to <strong className="text-[#F2EFE7]">Cashfree Dashboard → Developers → Webhooks</strong>.</p>
-                  <p>2. Add Endpoint: <code className="bg-[#171916] px-1.5 py-0.5 rounded text-[#26A69A] border border-[#2B2D2A]">{window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") ? "http://127.0.0.1:8000/api/webhooks/cashfree" : `${window.location.origin}/api/webhooks/cashfree`}</code></p>
-                  <p>3. Select Event: <strong className="text-[#F2EFE7]">PAYMENT_SUCCESS_WEBHOOK</strong>.</p>
-                  <p>4. Trigger a payment link for ₹1 / ₹50 to see it scored live in under 15ms!</p>
-                </div>
+
+                {/* Cashfree Result Banner */}
+                {cfResult && (
+                  <div className="p-3 rounded-[7px] bg-[#212320] border border-[#2B2D2A] flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{cfResult.risk_score >= 0.7 ? "🚨" : "✅"}</span>
+                      <div>
+                        <span className="text-white font-bold">{cfResult.transaction_id}</span>
+                        <span className="text-[#7F837B] ml-2">• Score: {cfResult.risk_score.toFixed(3)}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge level={cfResult.risk_level} />
+                      <Link to={`/investigate/${cfResult.transaction_id}`} className="btn-secondary py-1 px-2.5 text-[9px]">
+                        Inspect Payload ↗
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
+            )}
 
-              {/* Instant Test Ingestion Widget */}
-              <div className="bg-[#212320] p-3.5 rounded-[9px] border border-[#2B2D2A] space-y-3">
-                <div className="text-[#A7AAA3] font-semibold text-[11px] flex items-center justify-between">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF5B35]"></span>
-                    Simulate Live Cashfree Webhook Ingestion
-                  </span>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => handleCashfreeTest(75, "user@okhdfcbank")}
-                      className="text-[9px] px-2 py-0.5 rounded bg-[#2E7D32]/20 border border-[#2E7D32]/40 text-[#4CAF50] hover:bg-[#2E7D32]/30"
-                    >
-                      ₹75 Safe
-                    </button>
-                    <button
-                      onClick={() => handleCashfreeTest(150000, "crypto_mule@ybl")}
-                      className="text-[9px] px-2 py-0.5 rounded bg-[#C53030]/20 border border-[#C53030]/40 text-[#EF5350] hover:bg-[#C53030]/30"
-                    >
-                      ₹1.5L Fraud Spike
-                    </button>
+            {/* TAB 2: UPI INSTANT SIMULATOR */}
+            {studioTab === "upi" && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="font-mono text-[10px] text-[#7F837B]">Quick Amount Presets:</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button onClick={() => handleUpiPayment(50)} className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-[6px] bg-[#2E7D32]/20 border border-[#2E7D32]/50 text-[#4CAF50] hover:bg-[#2E7D32]/30">☕ ₹50 Safe</button>
+                    <button onClick={() => handleUpiPayment(100)} className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-[6px] bg-[#2E7D32]/20 border border-[#2E7D32]/50 text-[#4CAF50] hover:bg-[#2E7D32]/30">🍕 ₹100 Safe</button>
+                    <button onClick={() => handleUpiPayment(100000)} className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-[6px] bg-[#FF5B35]/20 border border-[#FF5B35]/50 text-[#FF5B35] hover:bg-[#FF5B35]/30">🚨 ₹1,00,000 Block</button>
+                    <button onClick={() => handleUpiPayment(250000)} className="font-mono text-[10px] font-semibold px-2.5 py-1 rounded-[6px] bg-[#C53030]/20 border border-[#C53030]/50 text-[#EF5350] hover:bg-[#C53030]/30">🛑 ₹2,50,000 Block</button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid md:grid-cols-4 gap-3">
                   <div>
-                    <label className="text-[9px] text-[#7F837B] block mb-1">Amount (INR)</label>
-                    <input
-                      type="number"
-                      value={cfAmount}
-                      onChange={(e) => setCfAmount(Number(e.target.value))}
-                      className="w-full bg-[#171916] border border-[#3D403C] rounded px-2 py-1 text-xs text-[#F2EFE7] font-mono focus:border-[#00897B] outline-none"
-                    />
+                    <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">From (Payer UPI)</label>
+                    <input type="text" value={upiSender} onChange={(e) => setUpiSender(e.target.value)} className="w-full bg-[#212320] border border-[#2B2D2A] rounded-[6px] px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-[#FF5B35]" />
                   </div>
                   <div>
-                    <label className="text-[9px] text-[#7F837B] block mb-1">Payer UPI ID / Phone</label>
-                    <input
-                      type="text"
-                      value={cfUpiId}
-                      onChange={(e) => setCfUpiId(e.target.value)}
-                      className="w-full bg-[#171916] border border-[#3D403C] rounded px-2 py-1 text-xs text-[#F2EFE7] font-mono focus:border-[#00897B] outline-none"
-                    />
+                    <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">To (Payee / Merchant)</label>
+                    <input type="text" value={upiReceiver} onChange={(e) => setUpiReceiver(e.target.value)} className="w-full bg-[#212320] border border-[#2B2D2A] rounded-[6px] px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-[#FF5B35]" />
+                  </div>
+                  <div>
+                    <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">Amount (₹ INR)</label>
+                    <input type="number" value={upiAmount} onChange={(e) => setUpiAmount(Number(e.target.value))} className="w-full bg-[#212320] border border-[#2B2D2A] rounded-[6px] px-2.5 py-1.5 text-xs font-mono font-bold text-white outline-none focus:border-[#FF5B35]" />
+                  </div>
+                  <div>
+                    <label className="font-mono text-[9px] uppercase tracking-wider text-[#A7AAA3] block mb-1">Transfer Note</label>
+                    <input type="text" value={upiNote} onChange={(e) => setUpiNote(e.target.value)} className="w-full bg-[#212320] border border-[#2B2D2A] rounded-[6px] px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-[#FF5B35]" />
                   </div>
                 </div>
 
-                <button
-                  disabled={cfProcessing}
-                  onClick={() => handleCashfreeTest()}
-                  className="w-full py-2 px-3 rounded-[7px] bg-[#00897B] hover:bg-[#00796B] text-white font-mono text-xs font-bold tracking-wider uppercase transition-all disabled:opacity-50"
-                >
-                  {cfProcessing ? "Processing Webhook…" : "Ingest & Score Cashfree Webhook ↗"}
+                <button onClick={() => handleUpiPayment()} disabled={upiProcessing} className="btn-primary w-full py-2.5 text-xs font-bold tracking-wider">
+                  {upiProcessing ? "Evaluating Multi-Signal Graph…" : `PAY ₹${Number(upiAmount).toLocaleString("en-IN")} VIA UPI ↗`}
                 </button>
-              </div>
-            </div>
 
-            {/* Cashfree Webhook Result Terminal */}
-            {cfResult && (
-              <div className="p-3 rounded-[7px] bg-[#171916] border border-[#2B2D2A] space-y-2 font-mono text-xs">
-                <div className="flex items-center justify-between border-b border-[#2B2D2A] pb-1.5">
-                  <span className="text-[#26A69A] font-bold">
-                    ✓ Webhook Ingested: {cfResult.transaction_id}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Badge level={cfResult.risk_level} />
-                    <Link
-                      to={`/investigate/${cfResult.transaction_id}`}
-                      className="text-[10px] text-[#FF5B35] underline hover:text-[#FF795A]"
-                    >
-                      Investigate ↗
-                    </Link>
+                {upiResult && (
+                  <div className="p-3 rounded-[7px] bg-[#212320] border border-[#2B2D2A] flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{upiResult.score.risk_score >= 0.7 ? "🚨" : "✅"}</span>
+                      <div>
+                        <span className={`font-bold ${upiResult.score.risk_score >= 0.7 ? "text-[#FF5B35]" : "text-[#4CAF50]"}`}>
+                          {upiResult.score.risk_score >= 0.7 ? "PAYMENT BLOCKED — HIGH RISK" : "PAYMENT APPROVED & SAFE"}
+                        </span>
+                        <span className="text-[#7F837B] ml-2">• Score: {upiResult.score.risk_score.toFixed(3)}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge level={upiResult.score.risk_level} />
+                      <Link to={`/investigate/${upiResult.transaction.transaction_id}`} className="btn-secondary py-1 px-2.5 text-[9px]">
+                        Forensics ↗
+                      </Link>
+                    </div>
                   </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: TRAFFIC STREAM */}
+            {studioTab === "stream" && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="font-mono text-xs text-[#A7AAA3]">
+                    Status: <strong className={running ? "text-[#4CAF50]" : "text-[#A7AAA3]"}>{running ? "● Active Stream Running" : "○ Paused"}</strong>
+                  </div>
+                  <button
+                    onClick={() => setRunning(!running)}
+                    className={`font-mono text-[10px] font-semibold uppercase px-3 py-1.5 rounded-[6px] border transition-all ${
+                      running ? "bg-[#C53030]/20 border-[#C53030]/50 text-[#EF5350]" : "bg-[#2E7D32]/20 border-[#2E7D32]/50 text-[#4CAF50]"
+                    }`}
+                  >
+                    {running ? "Pause Traffic" : "Start Continuous Stream"}
+                  </button>
                 </div>
-                <div className="text-[11px] text-[#A7AAA3] flex flex-wrap gap-4">
-                  <span>Score: <strong className="text-white">{cfResult.risk_score.toFixed(3)}</strong></span>
-                  <span>Gateway: <strong className="text-white">Cashfree PG</strong></span>
-                  <span>Decision: <strong className={cfResult.risk_score >= 0.7 ? "text-[#EF5350]" : "text-[#4CAF50]"}>{cfResult.risk_score >= 0.7 ? "BLOCK" : "APPROVE"}</strong></span>
+
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-[#2B2D2A]">
+                  <button className="btn-secondary py-1 px-2.5 text-[10px]" onClick={async () => { await api.reset(); refresh(); }}>Reset Store</button>
+                  <button className="font-mono text-[10px] uppercase font-semibold px-2.5 py-1 rounded-[6px] border border-[#3D403C] bg-[#212320] hover:bg-[#2B2D2A] text-white" onClick={async () => { await api.generate("normal"); refresh(); }}>+ Ingest Normal</button>
+                  <button className="font-mono text-[10px] uppercase font-semibold px-2.5 py-1 rounded-[6px] border border-[#B7791F]/50 bg-[#B7791F]/20 text-[#FFC107] hover:bg-[#B7791F]/30" onClick={async () => { await api.generate("suspicious"); refresh(); }}>+ Inject ATO Anomaly</button>
+                  <button className="font-mono text-[10px] uppercase font-semibold px-2.5 py-1 rounded-[6px] border border-[#FF5B35]/50 bg-[#FF5B35]/20 text-[#FF795A] hover:bg-[#FF5B35]/30" onClick={async () => { await api.generate("fraud_ring"); refresh(); }}>+ Inject Mule Ring</button>
+                  <button className="font-mono text-[10px] uppercase font-semibold px-2.5 py-1 rounded-[6px] border border-[#3D403C] bg-[#212320] hover:bg-[#2B2D2A] text-white" onClick={async () => { await api.generate("ambiguous"); refresh(); }}>+ Inject Subtle</button>
                 </div>
               </div>
             )}
           </div>
-
-          {/* Live Stream & Quick Scenario Generator */}
-          <Card className="border-[#D8D4CA]">
-            <div className="flex items-center justify-between border-b border-[#E7E4DB] pb-3">
-              <div className="font-title-strong text-sm text-[#171916] flex items-center gap-2">
-                <span>Live Transaction Stream</span>
-                <span className="badge-pill bg-[#E7E4DB] text-[#555951]">SIMULATION</span>
-              </div>
-              <span className={`font-mono text-[9px] uppercase tracking-wider px-2.5 py-1 rounded-full border ${running ? "bg-[#2E7D32]/10 text-[#1B5E20] border-[#2E7D32]/30" : "bg-[#E7E4DB] text-[#7F837B] border-[#D8D4CA]"}`}>
-                {running ? "● Streaming Active" : "○ Paused"}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap gap-2 mt-4">
-              <button
-                className={`font-mono text-[10px] font-semibold uppercase tracking-wider px-3.5 py-2 rounded-[7px] border transition-all ${running ? "bg-[#C53030]/10 border-[#C53030]/40 text-[#C53030]" : "bg-[#2E7D32]/10 border-[#2E7D32]/40 text-[#1B5E20]"}`}
-                onClick={() => setRunning(!running)}
-              >
-                {running ? "Pause Stream" : "Start Live Stream"}
-              </button>
-              <button className="btn-secondary py-1.5 px-3 text-[10px]" onClick={async () => { await api.reset(); refresh(); }}>Reset</button>
-              <button className="font-mono text-[10px] uppercase font-semibold px-3 py-1.5 rounded-[7px] border border-[#D8D4CA] bg-[#FFFFFF] hover:bg-[#E7E4DB]" onClick={async () => { await api.generate("normal"); refresh(); }}>Generate Normal</button>
-              <button className="font-mono text-[10px] uppercase font-semibold px-3 py-1.5 rounded-[7px] border border-[#B7791F]/40 bg-[#B7791F]/10 text-[#B7791F] hover:bg-[#B7791F]/20" onClick={async () => { await api.generate("suspicious"); refresh(); }}>Generate Suspicious</button>
-              <button className="font-mono text-[10px] uppercase font-semibold px-3 py-1.5 rounded-[7px] border border-[#FF5B35]/40 bg-[#FF5B35]/10 text-[#FF5B35] hover:bg-[#FF5B35]/20" onClick={async () => { await api.generate("fraud_ring"); refresh(); }}>Generate Fraud Ring</button>
-              <button className="font-mono text-[10px] uppercase font-semibold px-3 py-1.5 rounded-[7px] border border-[#D8D4CA] bg-[#FFFFFF] hover:bg-[#E7E4DB]" onClick={async () => { await api.generate("ambiguous"); refresh(); }}>Generate Subtle</button>
-            </div>
-          </Card>
 
           {/* Alerts & Investigations Grid */}
           <div className="grid md:grid-cols-3 gap-6">
